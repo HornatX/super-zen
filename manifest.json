@@ -1,7 +1,7 @@
 {
   "id": "super-zen",
   "name": "SuperZen",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "minAppVersion": "0.15.0",
   "description": "A minimal and clean Zen mode for focused writing in Obsidian.",
   "author": "hornat",
