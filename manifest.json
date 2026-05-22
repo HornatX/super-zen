@@ -1,9 +1,10 @@
 {
-  "id": "obsidian-chanmoshi",
+  "id": "super-zen",
   "name": "SuperZen",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "minAppVersion": "0.15.0",
-  "description": "An immersive, distraction-free writing environment that hides all UI clutter and auto-enters fullscreen.",
+  "description": "A minimal and clean Zen mode for focused writing in Obsidian.",
   "author": "hornat",
-  "isDesktopOnly": true
+  "authorUrl": "",
+  "isDesktopOnly": false
 }
