@@ -1,9 +1,9 @@
 {
   "id": "super-zen",
   "name": "超级禅",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "minAppVersion": "0.15.0",
-  "description": "A minimal and clean Zen mode for focused writing",
+  "description": "A minimal and clean Zen mode for focused writing.",
   "author": "hornat",
   "authorUrl": "",
   "isDesktopOnly": false
