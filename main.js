@@ -376,15 +376,7 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
       body.classList.add(SETTING_VERTICAL_TABS_CLASS);
     }
     if (this.settings.keepDualPanes) {
-      let isLeftMostInRoot = false;
       if (root === this.app.workspace.rootSplit) {
-        const allTabsInRoot = document.querySelectorAll(".workspace-split.mod-root .workspace-tabs");
-        const currentTab = containerEl?.closest(".workspace-tabs");
-        if (allTabsInRoot.length > 0 && currentTab && allTabsInRoot[0] === currentTab) {
-          isLeftMostInRoot = true;
-        }
-      }
-      if (root === this.app.workspace.rootSplit && !isLeftMostInRoot) {
         body.classList.add(SETTING_DUAL_PANE_CLASS);
       }
     }
@@ -462,7 +454,7 @@ var SuperZenSettingTab = class extends import_obsidian.PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
     containerEl.createEl("h2", { text: "SuperZen \u5B9A\u5236\u7985\u6A21\u5F0F\u8BBE\u7F6E" });
-    new import_obsidian.Setting(containerEl).setName("\u667A\u80FD\u591A\u7A97\u683C\u5BF9\u7167 (\u53CC\u5C4F\u6A21\u5F0F)").setDesc("\u5F00\u542F\u540E\uFF0C\u5F53\u4F60\u805A\u7126\u53F3\u4FA7\u7A97\u53E3\u5F00\u542F\u7985\u6A21\u5F0F\u65F6\uFF0C\u5C06\u4FDD\u7559\u5DE6\u4FA7\u7A97\u53E3\u540C\u5C4F\u5BF9\u7167\u3002").addToggle((toggle) => toggle.setValue(this.plugin.settings.keepDualPanes).onChange(async (value) => {
+    new import_obsidian.Setting(containerEl).setName("\u53CC\u5C4F\u6A21\u5F0F").setDesc("\u5F00\u542F\u540E\uFF0C\u8FDB\u5165\u7985\u6A21\u5F0F\u65F6\u5C06\u4FDD\u7559\u591A\u7A97\u683C\u540C\u5C4F\u5BF9\u7167\u3002").addToggle((toggle) => toggle.setValue(this.plugin.settings.keepDualPanes).onChange(async (value) => {
       this.plugin.settings.keepDualPanes = value;
       await this.plugin.saveSettings();
     }));

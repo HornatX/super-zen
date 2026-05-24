@@ -423,18 +423,8 @@ export default class SuperZenPlugin extends Plugin {
 
         // --- 核心：智能双屏判断逻辑 ---
         if (this.settings.keepDualPanes) {
-            let isLeftMostInRoot = false;
-            
+            // 只要在主编辑区，且开启了双屏模式，无条件添加双屏 Class（修复左侧进入失效的 Bug）
             if (root === (this.app.workspace as any).rootSplit) {
-                const allTabsInRoot = document.querySelectorAll('.workspace-split.mod-root .workspace-tabs');
-                const currentTab = containerEl?.closest('.workspace-tabs');
-                
-                if (allTabsInRoot.length > 0 && currentTab && allTabsInRoot[0] === currentTab) {
-                    isLeftMostInRoot = true;
-                }
-            }
-
-            if (root === (this.app.workspace as any).rootSplit && !isLeftMostInRoot) {
                 body.classList.add(SETTING_DUAL_PANE_CLASS);
             }
         }
@@ -536,8 +526,8 @@ class SuperZenSettingTab extends PluginSettingTab {
         containerEl.createEl('h2', { text: 'SuperZen 定制禅模式设置' });
 
         new Setting(containerEl)
-            .setName('智能多窗格对照 (双屏模式)')
-            .setDesc('开启后，当你聚焦右侧窗口开启禅模式时，将保留左侧窗口同屏对照。')
+            .setName('双屏模式')
+            .setDesc('开启后，进入禅模式时将保留多窗格同屏对照。')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.keepDualPanes)
                 .onChange(async (value) => {
