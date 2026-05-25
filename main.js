@@ -334,6 +334,32 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
           body.classList.add(SETTING_DUAL_PANE_CLASS);
           new import_obsidian.Notice("SuperZen: \u5207\u6362\u81F3\u3010\u53CC\u5C4F\u5BF9\u7167\u3011");
         } else {
+          let activeLeaf = this.app.workspace.activeLeaf;
+          if (!activeLeaf) activeLeaf = this.app.workspace.getMostRecentLeaf();
+          if (activeLeaf && activeLeaf !== this.targetLeaf) {
+            if (this.targetLeaf && this.targetLeaf.containerEl) {
+              this.targetLeaf.containerEl.classList.remove(LEAF_TARGET);
+            }
+            this.targetLeaf = activeLeaf;
+            if (this.targetLeaf.containerEl) {
+              this.targetLeaf.containerEl.classList.add(LEAF_TARGET);
+            }
+            let isBaseFile = false;
+            const view = this.targetLeaf.view;
+            if (view) {
+              const file = view.file;
+              if (file && file.extension === "base") {
+                isBaseFile = true;
+              } else if (view.getViewType() === "base") {
+                isBaseFile = true;
+              }
+            }
+            if (isBaseFile) {
+              body.classList.add(BASE_TARGET);
+            } else {
+              body.classList.remove(BASE_TARGET);
+            }
+          }
           body.classList.remove(SETTING_DUAL_PANE_CLASS);
           new import_obsidian.Notice("SuperZen: \u5207\u6362\u81F3\u3010\u5355\u5C4F\u72EC\u5360\u3011");
         }

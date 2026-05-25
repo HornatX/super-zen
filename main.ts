@@ -22,8 +22,8 @@ const STYLE_ID = "superzen-custom-style";
 const BODY_ZEN_ACTIVE = "superzen-is-active";
 const LEAF_TARGET = "superzen-target-leaf";
 const BASE_TARGET = "superzen-is-base-target";
-const SETTING_DUAL_PANE_CLASS = "superzen-dual-pane-mode"; 
-const SETTING_VERTICAL_TABS_CLASS = "superzen-vertical-tabs"; 
+const SETTING_DUAL_PANE_CLASS = "superzen-dual-pane-mode";
+const SETTING_VERTICAL_TABS_CLASS = "superzen-vertical-tabs";
 const VTAB_CONTAINER = "superzen-vtab-container"; // 垂直标签的动态宿主
 
 // 三大场景模式类
@@ -34,7 +34,7 @@ const MODE_RIGHT_AND_CENTER = "superzen-mode-right-center";
 
 // 默认设置
 const DEFAULT_SETTINGS: SuperZenSettings = {
-    keepDualPanes: false, 
+    keepDualPanes: false,
     verticalTabs: false,
     fixedRightTabs: false
 };
@@ -260,7 +260,7 @@ export default class SuperZenPlugin extends Plugin {
         this.targetLeaf = null;
         this.currentModeClass = null;
 
-        await this.loadSettings(); 
+        await this.loadSettings();
 
         this.handleFullscreenChange = this.handleFullscreenChange.bind(this);
 
@@ -369,6 +369,47 @@ export default class SuperZenPlugin extends Plugin {
                     body.classList.add(SETTING_DUAL_PANE_CLASS);
                     new Notice("SuperZen: 切换至【双屏对照】");
                 } else {
+                    // ==========================================
+                    // ✨ 新增逻辑：从双屏切回单屏时，动态转移焦点窗口 ✨
+                    // ==========================================
+                    let activeLeaf: WorkspaceLeaf | null = this.app.workspace.activeLeaf;
+                    if (!activeLeaf) activeLeaf = this.app.workspace.getMostRecentLeaf();
+
+                    // 如果当前存在活跃窗口，且不是原本进入禅模式时的窗口
+                    if (activeLeaf && activeLeaf !== this.targetLeaf) {
+                        // 1. 移除旧窗口的标识
+                        if (this.targetLeaf && (this.targetLeaf as any).containerEl) {
+                            (this.targetLeaf as any).containerEl.classList.remove(LEAF_TARGET);
+                        }
+
+                        // 2. 更新插件的焦点窗口指向
+                        this.targetLeaf = activeLeaf;
+
+                        // 3. 给新窗口打上标识 (CSS 依赖这个 Class 来保持单屏显示)
+                        if ((this.targetLeaf as any).containerEl) {
+                            (this.targetLeaf as any).containerEl.classList.add(LEAF_TARGET);
+                        }
+
+                        // 4. 重新判断新窗口是不是 Base 文件 (防止边距排版错乱)
+                        let isBaseFile = false;
+                        const view: View = this.targetLeaf.view;
+                        if (view) {
+                            const file = (view as any).file;
+                            if (file && file.extension === 'base') {
+                                isBaseFile = true;
+                            } else if (view.getViewType() === 'base') {
+                                isBaseFile = true;
+                            }
+                        }
+
+                        if (isBaseFile) {
+                            body.classList.add(BASE_TARGET);
+                        } else {
+                            body.classList.remove(BASE_TARGET);
+                        }
+                    }
+                    // ==========================================
+
                     body.classList.remove(SETTING_DUAL_PANE_CLASS);
                     new Notice("SuperZen: 切换至【单屏独占】");
                 }
@@ -383,7 +424,7 @@ export default class SuperZenPlugin extends Plugin {
     }
 
     enterZenMode() {
-        let activeLeaf: WorkspaceLeaf | null = this.app.workspace.activeLeaf; 
+        let activeLeaf: WorkspaceLeaf | null = this.app.workspace.activeLeaf;
         if (!activeLeaf) {
             activeLeaf = this.app.workspace.getMostRecentLeaf();
         }
@@ -480,8 +521,8 @@ export default class SuperZenPlugin extends Plugin {
         body.classList.remove(BODY_ZEN_ACTIVE);
         body.classList.remove(BASE_TARGET);
         body.classList.remove(SETTING_DUAL_PANE_CLASS);
-        body.classList.remove(SETTING_VERTICAL_TABS_CLASS); 
-        
+        body.classList.remove(SETTING_VERTICAL_TABS_CLASS);
+
         if (this.currentModeClass) {
             body.classList.remove(this.currentModeClass);
         }
@@ -494,7 +535,7 @@ export default class SuperZenPlugin extends Plugin {
         document.querySelectorAll(`.${VTAB_CONTAINER}`).forEach(el => el.classList.remove(VTAB_CONTAINER));
 
         if (document.fullscreenElement) {
-            document.exitFullscreen().catch(()=>{});
+            document.exitFullscreen().catch(() => { });
         }
 
         document.removeEventListener('fullscreenchange', this.handleFullscreenChange);
@@ -544,7 +585,7 @@ class SuperZenSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     this.plugin.settings.verticalTabs = value;
                     await this.plugin.saveSettings();
-                    
+
                     if (this.plugin.isActive) {
                         if (value) {
                             document.body.classList.add(SETTING_VERTICAL_TABS_CLASS);
