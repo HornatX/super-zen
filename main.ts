@@ -170,10 +170,14 @@ body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FUL
     overflow: visible !important;
 }
 
-/* 隐藏杂七杂八的加号和下拉箭头 */
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-new-tab,
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-tab-list {
+/* 🚀 强力清场：一刀切干掉所有杂项按钮（加号、下拉箭头、分屏图标等） */
+body.${SETTING_VERTICAL_TABS_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} > .workspace-tab-header-container > * {
     display: none !important;
+}
+
+/* 🛡️ 白名单放行：唯独只允许包含文字选项卡的核心列表容器显示 */
+body.${SETTING_VERTICAL_TABS_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} > .workspace-tab-header-container > .workspace-tab-header-container-inner {
+    display: flex !important;
 }
 
 /* 内部列表：纵向排列 */

@@ -169,10 +169,14 @@ body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FUL
     overflow: visible !important;
 }
 
-/* \u9690\u85CF\u6742\u4E03\u6742\u516B\u7684\u52A0\u53F7\u548C\u4E0B\u62C9\u7BAD\u5934 */
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-new-tab,
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-tab-list {
+/* \u{1F680} \u5F3A\u529B\u6E05\u573A\uFF1A\u4E00\u5200\u5207\u5E72\u6389\u6240\u6709\u6742\u9879\u6309\u94AE\uFF08\u52A0\u53F7\u3001\u4E0B\u62C9\u7BAD\u5934\u3001\u5206\u5C4F\u56FE\u6807\u7B49\uFF09 */
+body.${SETTING_VERTICAL_TABS_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} > .workspace-tab-header-container > * {
     display: none !important;
+}
+
+/* \u{1F6E1}\uFE0F \u767D\u540D\u5355\u653E\u884C\uFF1A\u552F\u72EC\u53EA\u5141\u8BB8\u5305\u542B\u6587\u5B57\u9009\u9879\u5361\u7684\u6838\u5FC3\u5217\u8868\u5BB9\u5668\u663E\u793A */
+body.${SETTING_VERTICAL_TABS_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} > .workspace-tab-header-container > .workspace-tab-header-container-inner {
+    display: flex !important;
 }
 
 /* \u5185\u90E8\u5217\u8868\uFF1A\u7EB5\u5411\u6392\u5217 */
