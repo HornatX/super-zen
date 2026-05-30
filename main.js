@@ -30,6 +30,7 @@ var BASE_TARGET = "superzen-is-base-target";
 var SETTING_DUAL_PANE_CLASS = "superzen-dual-pane-mode";
 var SETTING_VERTICAL_TABS_CLASS = "superzen-vertical-tabs";
 var VTAB_CONTAINER = "superzen-vtab-container";
+var SETTING_HIDE_PROPERTIES_CLASS = "superzen-hide-properties";
 var MODE_CENTER_FULL = "superzen-mode-center-full";
 var MODE_LEFT_AND_CENTER = "superzen-mode-left-center";
 var MODE_RIGHT_BASE_FULL = "superzen-mode-right-base-full";
@@ -37,7 +38,9 @@ var MODE_RIGHT_AND_CENTER = "superzen-mode-right-center";
 var DEFAULT_SETTINGS = {
   keepDualPanes: false,
   verticalTabs: false,
-  fixedRightTabs: false
+  fixedRightTabs: false,
+  hideProperties: true
+  // 【新增】默认隐藏属性区域，保持旧版逻辑一致
 };
 var CSS_STYLES = `
 /* ==========================================
@@ -46,11 +49,15 @@ var CSS_STYLES = `
 body.${BODY_ZEN_ACTIVE} .workspace-ribbon,
 body.${BODY_ZEN_ACTIVE} .status-bar,
 body.${BODY_ZEN_ACTIVE} .workspace-sidedock-vault-profile,
-body.${BODY_ZEN_ACTIVE} .metadata-container,
-body.${BODY_ZEN_ACTIVE} .metadata-properties-heading,
 body.${BODY_ZEN_ACTIVE} .view-header,
 body.${BODY_ZEN_ACTIVE} .nav-header,
 body.${BODY_ZEN_ACTIVE} .search-header-container {
+    display: none !important;
+}
+
+/* \u3010\u65B0\u589E\u3011\u72EC\u7ACB\u63A7\u5236\u5C5E\u6027\u533A\u57DF\u9690\u85CF\u903B\u8F91 */
+body.${BODY_ZEN_ACTIVE}.${SETTING_HIDE_PROPERTIES_CLASS} .metadata-container,
+body.${BODY_ZEN_ACTIVE}.${SETTING_HIDE_PROPERTIES_CLASS} .metadata-properties-heading {
     display: none !important;
 }
 
@@ -143,7 +150,6 @@ body.${BASE_TARGET} .workspace-leaf.${LEAF_TARGET} .view-content {
 
 /* ==========================================
    \u2728 \u7EC8\u6781\u7248\uFF1A\u6781\u7B80\u4FA7\u8FB9\u60AC\u6D6E\u5B57 (\u7834\u9664\u6324\u538B\u9650\u5236) \u2728
-   \u6CE8\u610F\uFF1A\u5DF2\u5347\u7EA7\u4E3A\u52A8\u6001\u76D1\u542C ${VTAB_CONTAINER}
    ========================================== */
 body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} {
     position: relative !important;
@@ -165,16 +171,16 @@ body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FUL
     border: none !important;
     box-shadow: none !important;
     z-index: 99 !important;
-    pointer-events: none; /* \u9632\u6B62\u7A7A\u6C14\u5899\u6321\u4F4F\u6B63\u6587\u70B9\u51FB */
+    pointer-events: none; 
     overflow: visible !important;
 }
 
-/* \u{1F680} \u5F3A\u529B\u6E05\u573A\uFF1A\u4E00\u5200\u5207\u5E72\u6389\u6240\u6709\u6742\u9879\u6309\u94AE\uFF08\u52A0\u53F7\u3001\u4E0B\u62C9\u7BAD\u5934\u3001\u5206\u5C4F\u56FE\u6807\u7B49\uFF09 */
+/* \u{1F680} \u5F3A\u529B\u6E05\u573A */
 body.${SETTING_VERTICAL_TABS_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} > .workspace-tab-header-container > * {
     display: none !important;
 }
 
-/* \u{1F6E1}\uFE0F \u767D\u540D\u5355\u653E\u884C\uFF1A\u552F\u72EC\u53EA\u5141\u8BB8\u5305\u542B\u6587\u5B57\u9009\u9879\u5361\u7684\u6838\u5FC3\u5217\u8868\u5BB9\u5668\u663E\u793A */
+/* \u{1F6E1}\uFE0F \u767D\u540D\u5355\u653E\u884C */
 body.${SETTING_VERTICAL_TABS_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} > .workspace-tab-header-container > .workspace-tab-header-container-inner {
     display: flex !important;
 }
@@ -183,7 +189,7 @@ body.${SETTING_VERTICAL_TABS_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-roo
 body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-container-inner {
     display: flex !important;
     flex-direction: column !important;
-    gap: 16px !important; /* \u9009\u9879\u5361\u4E4B\u95F4\u7684\u5782\u76F4\u8DDD\u79BB */
+    gap: 16px !important; 
     margin: 0 !important;
     padding: 0 !important;
     pointer-events: auto;
@@ -199,19 +205,19 @@ body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FUL
     margin: 0 !important;
     background-color: transparent !important; 
     border: none !important;
-    border-right: 2px solid transparent !important; /* \u7ED9\u6FC0\u6D3B\u72B6\u6001\u7559\u7684\u4F4D\u7F6E */
+    border-right: 2px solid transparent !important; 
     border-radius: 0 !important; 
-    opacity: 0.3 !important; /* \u9ED8\u8BA4\u5E7D\u7075\u72B6\u6001 */
+    opacity: 0.3 !important; 
     transition: all 0.3s ease !important;
     cursor: pointer !important;
     box-shadow: none !important;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
-    flex: none !important; /* \u7EDD\u5BF9\u7981\u6B62\u88AB\u538B\u7F29 */
+    flex: none !important; 
 }
 
-/* \u91CD\u5851\u5185\u90E8\u6392\u7248\u7ED3\u6784\uFF08\u6253\u788E Obsidian \u7684\u6A2A\u5411 Flex \u9650\u5236\uFF09 */
+/* \u91CD\u5851\u5185\u90E8\u6392\u7248\u7ED3\u6784 */
 body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-inner {
     display: flex !important;
     flex-direction: column !important;
@@ -227,22 +233,22 @@ body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FUL
     
 }
 
-/* \u6781\u81F4\u5E72\u51C0\uFF1A\u65A9\u6389\u56FE\u6807\u548C\u5173\u95ED\u6309\u94AE\uFF08\u7528\u9F20\u6807\u4E2D\u952E\u5173\u7F51\u9875\uFF09 */
+/* \u6781\u81F4\u5E72\u51C0\uFF1A\u65A9\u6389\u56FE\u6807\u548C\u5173\u95ED\u6309\u94AE */
 body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-inner-icon,
 body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-inner-close-button {
     display: none !important;
 }
 
-/* \u6FC0\u6D3B\u6001\u548C\u60AC\u6D6E\u6001\uFF1A\u6781\u7B80\u5FAE\u5149\uFF08\u53EA\u6709\u5B57\u53D8\u4EAE\uFF0C\u53F3\u4FA7\u4E00\u6761\u7EC6\u7EBF\uFF09 */
+/* \u6FC0\u6D3B\u6001\u548C\u60AC\u6D6E\u6001 */
 body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header:hover,
 body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header.is-active {
     opacity: 1 !important;
     background-color: transparent !important;
-    border-right: 2px solid var(--interactive-accent) !important; /* \u6781\u7EC6\u7684\u9AD8\u4EAE\u6307\u793A\u7EBF */
+    border-right: 2px solid var(--interactive-accent) !important; 
 }
 
 body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header.is-active .workspace-tab-header-inner-title {
-    color: var(--interactive-accent) !important; /* \u6FC0\u6D3B\u65F6\u5B57\u4F53\u989C\u8272\u53D8\u4E3A\u4E3B\u8272\u8C03 */
+    color: var(--interactive-accent) !important; 
 }
 
 /* \u9632\u6B62\u906E\u6321\u6B63\u6587\uFF1A\u53EA\u4F5C\u7528\u4E8E\u62E5\u6709\u5782\u76F4\u9009\u9879\u5361\u7684\u9762\u677F */
@@ -301,7 +307,6 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
       styleEl.remove();
     }
   }
-  // 动态计算并绑定垂直标签栏宿主
   updateVTabContainer() {
     document.querySelectorAll(`.${VTAB_CONTAINER}`).forEach((el) => el.classList.remove(VTAB_CONTAINER));
     if (!this.isActive || !this.targetLeaf) return;
@@ -400,6 +405,9 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
     const root = this.targetLeaf.getRoot();
     const body = document.body;
     body.classList.add(BODY_ZEN_ACTIVE);
+    if (this.settings.hideProperties) {
+      body.classList.add(SETTING_HIDE_PROPERTIES_CLASS);
+    }
     const containerEl = this.targetLeaf.containerEl;
     if (containerEl) containerEl.classList.add(LEAF_TARGET);
     if (this.settings.verticalTabs) {
@@ -453,6 +461,7 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
     body.classList.remove(BASE_TARGET);
     body.classList.remove(SETTING_DUAL_PANE_CLASS);
     body.classList.remove(SETTING_VERTICAL_TABS_CLASS);
+    body.classList.remove(SETTING_HIDE_PROPERTIES_CLASS);
     if (this.currentModeClass) {
       body.classList.remove(this.currentModeClass);
     }
@@ -487,6 +496,17 @@ var SuperZenSettingTab = class extends import_obsidian.PluginSettingTab {
     new import_obsidian.Setting(containerEl).setName("\u53CC\u5C4F\u6A21\u5F0F").setDesc("\u5F00\u542F\u540E\uFF0C\u8FDB\u5165\u7985\u6A21\u5F0F\u65F6\u5C06\u4FDD\u7559\u591A\u7A97\u683C\u540C\u5C4F\u5BF9\u7167\u3002").addToggle((toggle) => toggle.setValue(this.plugin.settings.keepDualPanes).onChange(async (value) => {
       this.plugin.settings.keepDualPanes = value;
       await this.plugin.saveSettings();
+    }));
+    new import_obsidian.Setting(containerEl).setName("\u9690\u85CF\u7B14\u8BB0\u5C5E\u6027\u533A\u57DF (Properties)").setDesc("\u5F00\u542F\u540E\uFF0C\u8FDB\u5165\u7985\u6A21\u5F0F\u5C06\u81EA\u52A8\u9690\u85CF\u6587\u6863\u9876\u90E8\u7684\u5C5E\u6027\u4FE1\u606F\u9762\u677F\uFF08YAML\u533A\u57DF\uFF09\uFF0C\u8BA9\u5199\u4F5C\u66F4\u6C89\u6D78\u3002").addToggle((toggle) => toggle.setValue(this.plugin.settings.hideProperties).onChange(async (value) => {
+      this.plugin.settings.hideProperties = value;
+      await this.plugin.saveSettings();
+      if (this.plugin.isActive) {
+        if (value) {
+          document.body.classList.add(SETTING_HIDE_PROPERTIES_CLASS);
+        } else {
+          document.body.classList.remove(SETTING_HIDE_PROPERTIES_CLASS);
+        }
+      }
     }));
     new import_obsidian.Setting(containerEl).setName("\u6781\u7B80\u60AC\u6D6E\u9009\u9879\u5361 (\u8FB9\u7F18\u60AC\u6D6E\u6587\u5B57)").setDesc("\u5F7B\u5E95\u53BB\u6846\u5316\uFF1A\u9009\u9879\u5361\u53D8\u4E3A\u7EAF\u7CB9\u6587\u5B57\u60AC\u6D6E\uFF0C\u89E3\u51B3\u6A2A\u5411\u6324\u538B\u53D8\u5F62\u95EE\u9898\u3002\u672A\u6FC0\u6D3B\u5448\u534A\u900F\u660E\u5E7D\u7075\u6001\uFF0C\u6FC0\u6D3B\u65F6\u5B57\u4F53\u70B9\u4EAE\u5E76\u5E26\u8FB9\u7F18\u7EBF\u3002").addToggle((toggle) => toggle.setValue(this.plugin.settings.verticalTabs).onChange(async (value) => {
       this.plugin.settings.verticalTabs = value;
