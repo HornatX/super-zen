@@ -1,3 +1,4 @@
+/* 请将样式放入根目录的 styles.css 文件中 */
 /* ==========================================
    全局隐藏规则 
    ========================================== */
@@ -26,11 +27,10 @@ body.superzen-is-active .floating-heading-container {
 }
 
 /* 拖拽条隐藏逻辑 */
-body.superzen-is-active .workspace-split.mod-left-split>.workspace-leaf-resize-handle,
-body.superzen-is-active .workspace-split.mod-right-split>.workspace-leaf-resize-handle {
+body.superzen-is-active .workspace-split.mod-left-split > .workspace-leaf-resize-handle,
+body.superzen-is-active .workspace-split.mod-right-split > .workspace-leaf-resize-handle {
     display: none !important;
 }
-
 body.superzen-is-active:not(.superzen-dual-pane-mode) .workspace-split.mod-root .workspace-leaf-resize-handle {
     display: none !important;
 }
@@ -40,7 +40,6 @@ body.superzen-mode-center-full .workspace-split.mod-left-split,
 body.superzen-mode-center-full .workspace-split.mod-right-split {
     display: none !important;
 }
-
 body.superzen-mode-center-full .workspace-split.mod-root .workspace-tab-header-container {
     display: none !important;
 }
@@ -56,12 +55,10 @@ body.superzen-mode-center-full:not(.superzen-dual-pane-mode) .workspace-split.mo
 body.superzen-mode-left-center .workspace-split.mod-right-split {
     display: none !important;
 }
-
 body.superzen-mode-left-center .workspace-split.mod-left-split .workspace-tab-header-container,
 body.superzen-mode-left-center .workspace-split.mod-root .workspace-tab-header-container {
     display: none !important;
 }
-
 body.superzen-mode-left-center .workspace-split.mod-left-split .workspace-leaf:not(.superzen-target-leaf),
 body.superzen-mode-left-center .workspace-split.mod-left-split .workspace-tabs:not(:has(.superzen-target-leaf)) {
     display: none !important;
@@ -72,17 +69,14 @@ body.superzen-mode-right-base-full .workspace-split.mod-left-split,
 body.superzen-mode-right-base-full .workspace-split.mod-root {
     display: none !important;
 }
-
 body.superzen-mode-right-base-full .workspace-split.mod-right-split .workspace-tab-header-container {
     display: none !important;
 }
-
 body.superzen-mode-right-base-full .workspace-split.mod-right-split .workspace-leaf:not(.superzen-target-leaf),
 body.superzen-mode-right-base-full .workspace-split.mod-right-split .workspace-tabs:not(:has(.superzen-target-leaf)),
 body.superzen-mode-right-base-full .workspace-split.mod-right-split .workspace-split:not(:has(.superzen-target-leaf)) {
     display: none !important;
 }
-
 body.superzen-mode-right-base-full .workspace-split.mod-right-split {
     width: 100% !important;
     max-width: none !important;
@@ -94,12 +88,10 @@ body.superzen-mode-right-base-full .workspace-split.mod-right-split {
 body.superzen-mode-right-center .workspace-split.mod-left-split {
     display: none !important;
 }
-
 body.superzen-mode-right-center .workspace-split.mod-right-split .workspace-tab-header-container,
 body.superzen-mode-right-center .workspace-split.mod-root .workspace-tab-header-container {
     display: none !important;
 }
-
 body.superzen-mode-right-center .workspace-split.mod-right-split .workspace-leaf:not(.superzen-target-leaf),
 body.superzen-mode-right-center .workspace-split.mod-right-split .workspace-tabs:not(:has(.superzen-target-leaf)) {
     display: none !important;
@@ -112,20 +104,19 @@ body.superzen-is-base-target .workspace-leaf.superzen-target-leaf .view-content 
 }
 
 /* ==========================================
-   ✨ 终极版：极简侧边悬浮字 (破除挤压限制) ✨
+   极简侧边悬浮字 (破除挤压限制)
    ========================================== */
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container {
     position: relative !important;
     overflow: visible !important;
 }
 
-/* 最外层容器：默认固定在右侧中间 */
-body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container>.workspace-tab-header-container {
+body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container > .workspace-tab-header-container {
     display: flex !important;
     position: absolute !important;
-    right: 10px !important;
+    right: 10px !important; 
     top: 50% !important;
-    transform: translateY(-50%) !important;
+    transform: translateY(-50%) !important; 
     width: 32px !important;
     height: auto !important;
     max-height: 90vh !important;
@@ -134,53 +125,48 @@ body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .w
     border: none !important;
     box-shadow: none !important;
     z-index: 99 !important;
-    pointer-events: none;
+    pointer-events: none; 
     overflow: visible !important;
 }
 
-/* 🚀 强力清场 */
-body.superzen-vertical-tabs.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container>.workspace-tab-header-container>* {
+body.superzen-vertical-tabs.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container > .workspace-tab-header-container > * {
     display: none !important;
 }
 
-/* 🛡️ 白名单放行 */
-body.superzen-vertical-tabs.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container>.workspace-tab-header-container>.workspace-tab-header-container-inner {
+body.superzen-vertical-tabs.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container > .workspace-tab-header-container > .workspace-tab-header-container-inner {
     display: flex !important;
 }
 
-/* 内部列表：纵向排列 */
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header-container-inner {
     display: flex !important;
     flex-direction: column !important;
-    gap: 16px !important;
+    gap: 16px !important; 
     margin: 0 !important;
     padding: 0 !important;
     pointer-events: auto;
     overflow: visible !important;
 }
 
-/* 单个选项卡的外部区块（极简透明） */
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header {
     width: 32px !important;
     height: auto !important;
     min-height: 60px !important;
     padding: 8px 0 !important;
     margin: 0 !important;
-    background-color: transparent !important;
+    background-color: transparent !important; 
     border: none !important;
-    border-right: 2px solid transparent !important;
-    border-radius: 0 !important;
-    opacity: 0.3 !important;
+    border-right: 2px solid transparent !important; 
+    border-radius: 0 !important; 
+    opacity: 0.3 !important; 
     transition: all 0.3s ease !important;
     cursor: pointer !important;
     box-shadow: none !important;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
-    flex: none !important;
+    flex: none !important; 
 }
 
-/* 重塑内部排版结构 */
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header-inner {
     display: flex !important;
     flex-direction: column !important;
@@ -189,9 +175,11 @@ body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .w
     padding: 0 !important;
     margin: 0 !important;
     overflow: visible !important;
+    box-shadow: none !important;
+    border: none !important;
 }
 
-/* 🔥 核心修复：强行让文字竖起来并显示全 (接入补丁) 🔥 */
+/* 核心修复：强行让文字竖起来并显示全 */
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header-inner-title {
     writing-mode: vertical-rl !important;
     text-orientation: upright !important;
@@ -214,7 +202,6 @@ body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .w
     outline: none !important;
 }
 
-/* 🗡️ 彻底斩杀 Obsidian 原生的选项卡分隔线 (伪元素) 和残留阴影 */
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header::before,
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header::after,
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header-inner::before,
@@ -223,45 +210,34 @@ body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .w
     content: none !important;
 }
 
-/* 清除可能存在的内边框和阴影 */
-body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header-inner {
-    box-shadow: none !important;
-    border: none !important;
-}
-
-/* 极致干净：斩掉图标和关闭按钮 */
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header-inner-icon,
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header-inner-close-button {
     display: none !important;
 }
 
-/* 激活态和悬浮态 (默认右侧效果) */
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header:hover,
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header.is-active {
     opacity: 1 !important;
     background-color: transparent !important;
-    border-right: 2px solid var(--interactive-accent) !important;
+    border-right: 2px solid var(--interactive-accent) !important; 
 }
 
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header.is-active .workspace-tab-header-inner-title {
-    color: var(--interactive-accent) !important;
+    color: var(--interactive-accent) !important; 
 }
 
-/* 防止遮挡正文：只作用于拥有垂直选项卡的面板 */
+/* 防止遮挡正文 */
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-leaf .view-content {
     padding-right: 0px !important;
 }
 
-/* ==========================================
-   🌟 新增特性：左右标签分离模式 
-   ========================================== */
-body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full.superzen-split-tabs .workspace-split.mod-root .superzen-vtab-container.superzen-vtab-left>.workspace-tab-header-container {
+/* 左右标签分离模式 */
+body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full.superzen-split-tabs .workspace-split.mod-root .superzen-vtab-container.superzen-vtab-left > .workspace-tab-header-container {
     right: auto !important;
     left: -14px !important;
     position: fixed !important;
 }
 
-/* 左侧标签的边框镜像反转 */
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full.superzen-split-tabs .workspace-split.mod-root .superzen-vtab-container.superzen-vtab-left .workspace-tab-header {
     border-right: none !important;
     border-left: 2px solid transparent !important;
@@ -270,10 +246,9 @@ body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full.su
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full.superzen-split-tabs .workspace-split.mod-root .superzen-vtab-container.superzen-vtab-left .workspace-tab-header:hover,
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full.superzen-split-tabs .workspace-split.mod-root .superzen-vtab-container.superzen-vtab-left .workspace-tab-header.is-active {
     border-right: none !important;
-    border-left: 2px solid var(--interactive-accent) !important;
+    border-left: 2px solid var(--interactive-accent) !important; 
 }
 
-/* 左侧标签的内边距镜像反转 */
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full.superzen-split-tabs .workspace-split.mod-root .superzen-vtab-container.superzen-vtab-left .workspace-tab-header-inner-title {
-    padding: 0px 0px 0px 10px !important;
+    padding: 0px 0px 0px 10px !important; 
 }

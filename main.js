@@ -45,21 +45,26 @@ var DEFAULT_SETTINGS = {
 var SuperZenPlugin = class extends import_obsidian.Plugin {
   constructor() {
     super(...arguments);
+    // 修复：采用箭头函数防丢失 this 上下文，处理 unbound method 报错
+    this.handleFullscreenChange = () => {
+      if (!activeDocument.fullscreenElement && this.isActive) {
+        this.exitZenMode();
+      }
+    };
+  }
+  async onload() {
     this.isActive = false;
     this.targetLeaf = null;
     this.currentModeClass = null;
-  }
-  async onload() {
     await this.loadSettings();
-    this.handleFullscreenChange = this.handleFullscreenChange.bind(this);
     this.addSettingTab(new SuperZenSettingTab(this.app, this));
     this.addCommand({
-      id: "toggle-zen-mode",
+      id: "toggle",
       name: "\u5F00\u542F/\u5173\u95ED \u5B9A\u5236\u7985\u6A21\u5F0F",
       callback: () => this.toggleZenMode()
     });
     this.addCommand({
-      id: "toggle-dual-pane-mode",
+      id: "toggle-dual-pane",
       name: "\u5207\u6362 \u5355\u5C4F/\u53CC\u5C4F \u5BF9\u7167\u6A21\u5F0F",
       callback: () => this.toggleDualPaneMode()
     });
@@ -81,16 +86,15 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
     await this.saveData(this.settings);
   }
   updateVTabContainer() {
-    const doc = activeDocument ?? document;
-    doc.querySelectorAll(`.${VTAB_CONTAINER}`).forEach((el) => {
+    activeDocument.querySelectorAll(`.${VTAB_CONTAINER}`).forEach((el) => {
       el.classList.remove(VTAB_CONTAINER);
       el.classList.remove("superzen-vtab-left");
       el.classList.remove("superzen-vtab-right");
     });
     if (!this.isActive || !this.targetLeaf) return;
-    const rootTabs = doc.querySelectorAll(".workspace-split.mod-root .workspace-tabs");
+    const rootTabs = activeDocument.querySelectorAll(".workspace-split.mod-root .workspace-tabs");
     if (rootTabs.length === 0) return;
-    const isDualPaneActive = doc.body.classList.contains(SETTING_DUAL_PANE_CLASS);
+    const isDualPaneActive = activeDocument.body.classList.contains(SETTING_DUAL_PANE_CLASS);
     if (this.settings.splitTabs && isDualPaneActive && rootTabs.length > 1) {
       const firstTab = rootTabs[0];
       firstTab.classList.add(VTAB_CONTAINER, "superzen-vtab-left");
@@ -103,7 +107,7 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
           lastTab.classList.add(VTAB_CONTAINER);
         }
       } else {
-        const targetContainer = this.targetLeaf?.containerEl?.closest(".workspace-tabs");
+        const targetContainer = this.targetLeaf.containerEl?.closest(".workspace-tabs");
         if (targetContainer) {
           targetContainer.classList.add(VTAB_CONTAINER);
         }
@@ -121,32 +125,34 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
     this.settings.keepDualPanes = !this.settings.keepDualPanes;
     await this.saveSettings();
     const statusStr = this.settings.keepDualPanes ? "\u5F00\u542F" : "\u5173\u95ED";
-    const doc = activeDocument ?? document;
     if (this.isActive) {
       if (this.currentModeClass === MODE_CENTER_FULL) {
+        const body = activeDocument.body;
         if (this.settings.keepDualPanes) {
-          doc.body.classList.add(SETTING_DUAL_PANE_CLASS);
+          body.classList.add(SETTING_DUAL_PANE_CLASS);
           new import_obsidian.Notice("SuperZen: \u5207\u6362\u81F3\u3010\u53CC\u5C4F\u5BF9\u7167\u3011");
         } else {
-          let activeLeaf = this.app.workspace.getActiveViewOfType(import_obsidian.View)?.leaf ?? this.app.workspace.getMostRecentLeaf();
-          if (!activeLeaf) {
-            const domActive = doc.querySelector(".workspace-leaf.mod-active");
-            if (domActive) {
-              this.app.workspace.iterateAllLeaves((leaf) => {
-                const leafContainer = leaf.containerEl;
-                if (leafContainer === domActive || leafContainer?.contains(domActive)) {
-                  activeLeaf = leaf;
-                }
-              });
-            }
+          let activeLeaf = null;
+          const domActive = activeDocument.querySelector(".workspace-leaf.mod-active");
+          if (domActive) {
+            this.app.workspace.iterateAllLeaves((leaf) => {
+              const leafContainer = leaf.containerEl;
+              if (leafContainer === domActive || leafContainer?.contains(domActive)) {
+                activeLeaf = leaf;
+              }
+            });
           }
           if (activeLeaf && activeLeaf !== this.targetLeaf) {
-            if (this.targetLeaf?.containerEl) {
-              this.targetLeaf.containerEl.classList.remove(LEAF_TARGET);
+            if (this.targetLeaf) {
+              const oldContainer = this.targetLeaf.containerEl;
+              if (oldContainer) {
+                oldContainer.classList.remove(LEAF_TARGET);
+              }
             }
             this.targetLeaf = activeLeaf;
-            if (this.targetLeaf?.containerEl) {
-              this.targetLeaf.containerEl.classList.add(LEAF_TARGET);
+            const newContainer = this.targetLeaf.containerEl;
+            if (newContainer) {
+              newContainer.classList.add(LEAF_TARGET);
             }
             let isBaseFile = false;
             const view = this.targetLeaf.view;
@@ -159,12 +165,12 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
               }
             }
             if (isBaseFile) {
-              doc.body.classList.add(BASE_TARGET);
+              body.classList.add(BASE_TARGET);
             } else {
-              doc.body.classList.remove(BASE_TARGET);
+              body.classList.remove(BASE_TARGET);
             }
           }
-          doc.body.classList.remove(SETTING_DUAL_PANE_CLASS);
+          body.classList.remove(SETTING_DUAL_PANE_CLASS);
           new import_obsidian.Notice("SuperZen: \u5207\u6362\u81F3\u3010\u5355\u5C4F\u72EC\u5360\u3011");
         }
         this.updateVTabContainer();
@@ -176,18 +182,15 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
     }
   }
   enterZenMode() {
-    const doc = activeDocument ?? document;
-    let activeLeaf = this.app.workspace.getActiveViewOfType(import_obsidian.View)?.leaf ?? this.app.workspace.getMostRecentLeaf();
-    if (!activeLeaf) {
-      const domActive = doc.querySelector(".workspace-leaf.mod-active");
-      if (domActive) {
-        this.app.workspace.iterateAllLeaves((leaf) => {
-          const leafContainer = leaf.containerEl;
-          if (leafContainer === domActive || leafContainer?.contains(domActive)) {
-            activeLeaf = leaf;
-          }
-        });
-      }
+    let activeLeaf = null;
+    const domActive = activeDocument.querySelector(".workspace-leaf.mod-active");
+    if (domActive) {
+      this.app.workspace.iterateAllLeaves((leaf) => {
+        const leafContainer = leaf.containerEl;
+        if (leafContainer === domActive || leafContainer?.contains(domActive)) {
+          activeLeaf = leaf;
+        }
+      });
     }
     if (!activeLeaf) {
       new import_obsidian.Notice("SuperZen: \u672A\u627E\u5230\u53EF\u6FC0\u6D3B\u7684\u7A97\u53E3");
@@ -195,24 +198,24 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
     }
     this.targetLeaf = activeLeaf;
     this.isActive = true;
-    const workspace = this.app.workspace;
-    const root = this.targetLeaf.getRoot?.() ?? null;
-    doc.body.classList.add(BODY_ZEN_ACTIVE);
+    const root = this.targetLeaf.getRoot();
+    const extWorkspace = this.app.workspace;
+    const body = activeDocument.body;
+    body.classList.add(BODY_ZEN_ACTIVE);
     if (this.settings.hideProperties) {
-      doc.body.classList.add(SETTING_HIDE_PROPERTIES_CLASS);
+      body.classList.add(SETTING_HIDE_PROPERTIES_CLASS);
     }
-    if (this.targetLeaf.containerEl) {
-      this.targetLeaf.containerEl.classList.add(LEAF_TARGET);
-    }
+    const containerEl = this.targetLeaf.containerEl;
+    if (containerEl) containerEl.classList.add(LEAF_TARGET);
     if (this.settings.verticalTabs) {
-      doc.body.classList.add(SETTING_VERTICAL_TABS_CLASS);
+      body.classList.add(SETTING_VERTICAL_TABS_CLASS);
     }
     if (this.settings.splitTabs) {
-      doc.body.classList.add(SETTING_SPLIT_TABS_CLASS);
+      body.classList.add(SETTING_SPLIT_TABS_CLASS);
     }
     if (this.settings.keepDualPanes) {
-      if (root === workspace.rootSplit) {
-        doc.body.classList.add(SETTING_DUAL_PANE_CLASS);
+      if (root === extWorkspace.rootSplit) {
+        body.classList.add(SETTING_DUAL_PANE_CLASS);
       }
     }
     let isBaseFile = false;
@@ -226,65 +229,62 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
       }
     }
     if (isBaseFile) {
-      doc.body.classList.add(BASE_TARGET);
+      body.classList.add(BASE_TARGET);
     }
-    if (root === workspace.rootSplit) {
+    if (root === extWorkspace.rootSplit) {
       this.currentModeClass = MODE_CENTER_FULL;
-      doc.body.classList.add(MODE_CENTER_FULL);
-    } else if (root === workspace.leftSplit) {
+      body.classList.add(MODE_CENTER_FULL);
+    } else if (root === extWorkspace.leftSplit) {
       this.currentModeClass = MODE_LEFT_AND_CENTER;
-      doc.body.classList.add(MODE_LEFT_AND_CENTER);
-    } else if (root === workspace.rightSplit) {
+      body.classList.add(MODE_LEFT_AND_CENTER);
+    } else if (root === extWorkspace.rightSplit) {
       if (isBaseFile) {
         this.currentModeClass = MODE_RIGHT_BASE_FULL;
-        doc.body.classList.add(MODE_RIGHT_BASE_FULL);
+        body.classList.add(MODE_RIGHT_BASE_FULL);
       } else {
         this.currentModeClass = MODE_RIGHT_AND_CENTER;
-        doc.body.classList.add(MODE_RIGHT_AND_CENTER);
+        body.classList.add(MODE_RIGHT_AND_CENTER);
       }
     }
-    if (!doc.fullscreenElement) {
-      doc.body.requestFullscreen().catch((err) => {
+    if (!activeDocument.fullscreenElement) {
+      activeDocument.body.requestFullscreen().catch((err) => {
         console.warn("SuperZen: \u8BF7\u6C42\u5168\u5C4F\u5931\u8D25, \u4F46\u7EE7\u7EED\u6267\u884C\u4E13\u6CE8\u6A21\u5F0F", err);
       });
     }
-    doc.addEventListener("fullscreenchange", this.handleFullscreenChange);
+    activeDocument.addEventListener("fullscreenchange", this.handleFullscreenChange);
     this.updateVTabContainer();
   }
   exitZenMode() {
     if (!this.isActive) return;
-    const doc = activeDocument ?? document;
-    doc.body.classList.remove(BODY_ZEN_ACTIVE);
-    doc.body.classList.remove(BASE_TARGET);
-    doc.body.classList.remove(SETTING_DUAL_PANE_CLASS);
-    doc.body.classList.remove(SETTING_VERTICAL_TABS_CLASS);
-    doc.body.classList.remove(SETTING_HIDE_PROPERTIES_CLASS);
-    doc.body.classList.remove(SETTING_SPLIT_TABS_CLASS);
+    const body = activeDocument.body;
+    body.classList.remove(BODY_ZEN_ACTIVE);
+    body.classList.remove(BASE_TARGET);
+    body.classList.remove(SETTING_DUAL_PANE_CLASS);
+    body.classList.remove(SETTING_VERTICAL_TABS_CLASS);
+    body.classList.remove(SETTING_HIDE_PROPERTIES_CLASS);
+    body.classList.remove(SETTING_SPLIT_TABS_CLASS);
     if (this.currentModeClass) {
-      doc.body.classList.remove(this.currentModeClass);
+      body.classList.remove(this.currentModeClass);
     }
-    if (this.targetLeaf?.containerEl) {
-      this.targetLeaf.containerEl.classList.remove(LEAF_TARGET);
+    if (this.targetLeaf) {
+      const containerEl = this.targetLeaf.containerEl;
+      if (containerEl) {
+        containerEl.classList.remove(LEAF_TARGET);
+      }
     }
-    doc.querySelectorAll(`.${VTAB_CONTAINER}`).forEach((el) => {
+    activeDocument.querySelectorAll(`.${VTAB_CONTAINER}`).forEach((el) => {
       el.classList.remove(VTAB_CONTAINER);
       el.classList.remove("superzen-vtab-left");
       el.classList.remove("superzen-vtab-right");
     });
-    if (doc.fullscreenElement) {
-      doc.exitFullscreen().catch(() => {
+    if (activeDocument.fullscreenElement) {
+      activeDocument.exitFullscreen().catch(() => {
       });
     }
-    doc.removeEventListener("fullscreenchange", this.handleFullscreenChange);
+    activeDocument.removeEventListener("fullscreenchange", this.handleFullscreenChange);
     this.isActive = false;
     this.targetLeaf = null;
     this.currentModeClass = null;
-  }
-  handleFullscreenChange() {
-    const doc = activeDocument ?? document;
-    if (!doc.fullscreenElement && this.isActive) {
-      this.exitZenMode();
-    }
   }
 };
 var SuperZenSettingTab = class extends import_obsidian.PluginSettingTab {
@@ -304,11 +304,10 @@ var SuperZenSettingTab = class extends import_obsidian.PluginSettingTab {
       this.plugin.settings.hideProperties = value;
       await this.plugin.saveSettings();
       if (this.plugin.isActive) {
-        const doc = activeDocument ?? document;
         if (value) {
-          doc.body.classList.add(SETTING_HIDE_PROPERTIES_CLASS);
+          activeDocument.body.classList.add(SETTING_HIDE_PROPERTIES_CLASS);
         } else {
-          doc.body.classList.remove(SETTING_HIDE_PROPERTIES_CLASS);
+          activeDocument.body.classList.remove(SETTING_HIDE_PROPERTIES_CLASS);
         }
       }
     }));
@@ -316,11 +315,10 @@ var SuperZenSettingTab = class extends import_obsidian.PluginSettingTab {
       this.plugin.settings.verticalTabs = value;
       await this.plugin.saveSettings();
       if (this.plugin.isActive) {
-        const doc = activeDocument ?? document;
         if (value) {
-          doc.body.classList.add(SETTING_VERTICAL_TABS_CLASS);
+          activeDocument.body.classList.add(SETTING_VERTICAL_TABS_CLASS);
         } else {
-          doc.body.classList.remove(SETTING_VERTICAL_TABS_CLASS);
+          activeDocument.body.classList.remove(SETTING_VERTICAL_TABS_CLASS);
         }
       }
     }));
@@ -335,11 +333,10 @@ var SuperZenSettingTab = class extends import_obsidian.PluginSettingTab {
       this.plugin.settings.splitTabs = value;
       await this.plugin.saveSettings();
       if (this.plugin.isActive) {
-        const doc = activeDocument ?? document;
         if (value) {
-          doc.body.classList.add(SETTING_SPLIT_TABS_CLASS);
+          activeDocument.body.classList.add(SETTING_SPLIT_TABS_CLASS);
         } else {
-          doc.body.classList.remove(SETTING_SPLIT_TABS_CLASS);
+          activeDocument.body.classList.remove(SETTING_SPLIT_TABS_CLASS);
         }
         this.plugin.updateVTabContainer();
       }
