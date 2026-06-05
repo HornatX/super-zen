@@ -23,7 +23,6 @@ __export(main_exports, {
 });
 module.exports = __toCommonJS(main_exports);
 var import_obsidian = require("obsidian");
-var STYLE_ID = "superzen-custom-style";
 var BODY_ZEN_ACTIVE = "superzen-is-active";
 var LEAF_TARGET = "superzen-target-leaf";
 var BASE_TARGET = "superzen-is-base-target";
@@ -42,297 +41,25 @@ var DEFAULT_SETTINGS = {
   fixedRightTabs: false,
   hideProperties: true,
   splitTabs: false
-  // 【新增】默认关闭，保持原来逻辑
 };
-var CSS_STYLES = `
-/* ==========================================
-   \u5168\u5C40\u9690\u85CF\u89C4\u5219 
-   ========================================== */
-body.${BODY_ZEN_ACTIVE} .workspace-ribbon,
-body.${BODY_ZEN_ACTIVE} .status-bar,
-body.${BODY_ZEN_ACTIVE} .workspace-sidedock-vault-profile,
-body.${BODY_ZEN_ACTIVE} .view-header,
-body.${BODY_ZEN_ACTIVE} .nav-header,
-body.${BODY_ZEN_ACTIVE} .search-header-container {
-    display: none !important;
-}
-
-body.${BODY_ZEN_ACTIVE}.${SETTING_HIDE_PROPERTIES_CLASS} .metadata-container,
-body.${BODY_ZEN_ACTIVE}.${SETTING_HIDE_PROPERTIES_CLASS} .metadata-properties-heading {
-    display: none !important;
-}
-
-body.${BODY_ZEN_ACTIVE} .titlebar,
-body.${BODY_ZEN_ACTIVE} .workspace-tab-header-container,
-body.${BODY_ZEN_ACTIVE} .workspace-leaf.${LEAF_TARGET} .view-header {
-    display: none !important;
-}
-
-body.${BODY_ZEN_ACTIVE} .floating-heading-container {
-    display: none !important;
-}
-
-/* \u62D6\u62FD\u6761\u9690\u85CF\u903B\u8F91 */
-body.${BODY_ZEN_ACTIVE} .workspace-split.mod-left-split > .workspace-leaf-resize-handle,
-body.${BODY_ZEN_ACTIVE} .workspace-split.mod-right-split > .workspace-leaf-resize-handle {
-    display: none !important;
-}
-body.${BODY_ZEN_ACTIVE}:not(.${SETTING_DUAL_PANE_CLASS}) .workspace-split.mod-root .workspace-leaf-resize-handle {
-    display: none !important;
-}
-
-/* \u903B\u8F91\u4E00\uFF1A\u6B63\u6587\u5168\u5C4F */
-body.${MODE_CENTER_FULL} .workspace-split.mod-left-split,
-body.${MODE_CENTER_FULL} .workspace-split.mod-right-split {
-    display: none !important;
-}
-body.${MODE_CENTER_FULL} .workspace-split.mod-root .workspace-tab-header-container {
-    display: none !important;
-}
-
-/* \u667A\u80FD\u53CC\u5C4F\u903B\u8F91 */
-body.${MODE_CENTER_FULL}:not(.${SETTING_DUAL_PANE_CLASS}) .workspace-split.mod-root .workspace-leaf:not(.${LEAF_TARGET}),
-body.${MODE_CENTER_FULL}:not(.${SETTING_DUAL_PANE_CLASS}) .workspace-split.mod-root .workspace-tabs:not(:has(.${LEAF_TARGET})),
-body.${MODE_CENTER_FULL}:not(.${SETTING_DUAL_PANE_CLASS}) .workspace-split.mod-root .workspace-split:not(:has(.${LEAF_TARGET})) {
-    display: none !important;
-}
-
-/* \u903B\u8F91\u4E8C\uFF1A\u5DE6\u4FA7 + \u6B63\u6587 */
-body.${MODE_LEFT_AND_CENTER} .workspace-split.mod-right-split {
-    display: none !important;
-}
-body.${MODE_LEFT_AND_CENTER} .workspace-split.mod-left-split .workspace-tab-header-container,
-body.${MODE_LEFT_AND_CENTER} .workspace-split.mod-root .workspace-tab-header-container {
-    display: none !important;
-}
-body.${MODE_LEFT_AND_CENTER} .workspace-split.mod-left-split .workspace-leaf:not(.${LEAF_TARGET}),
-body.${MODE_LEFT_AND_CENTER} .workspace-split.mod-left-split .workspace-tabs:not(:has(.${LEAF_TARGET})) {
-    display: none !important;
-}
-
-/* \u903B\u8F91\u4E09 (A)\uFF1A\u53F3\u4FA7 Base \u6587\u4EF6\u5168\u5C4F */
-body.${MODE_RIGHT_BASE_FULL} .workspace-split.mod-left-split,
-body.${MODE_RIGHT_BASE_FULL} .workspace-split.mod-root {
-    display: none !important;
-}
-body.${MODE_RIGHT_BASE_FULL} .workspace-split.mod-right-split .workspace-tab-header-container {
-    display: none !important;
-}
-body.${MODE_RIGHT_BASE_FULL} .workspace-split.mod-right-split .workspace-leaf:not(.${LEAF_TARGET}),
-body.${MODE_RIGHT_BASE_FULL} .workspace-split.mod-right-split .workspace-tabs:not(:has(.${LEAF_TARGET})),
-body.${MODE_RIGHT_BASE_FULL} .workspace-split.mod-right-split .workspace-split:not(:has(.${LEAF_TARGET})) {
-    display: none !important;
-}
-body.${MODE_RIGHT_BASE_FULL} .workspace-split.mod-right-split {
-    width: 100% !important;
-    max-width: none !important;
-    flex-grow: 1 !important;
-    border: none !important;
-}
-
-/* \u903B\u8F91\u4E09 (B)\uFF1A\u53F3\u4FA7\u666E\u901A\u9762\u677F + \u6B63\u6587 */
-body.${MODE_RIGHT_AND_CENTER} .workspace-split.mod-left-split {
-    display: none !important;
-}
-body.${MODE_RIGHT_AND_CENTER} .workspace-split.mod-right-split .workspace-tab-header-container,
-body.${MODE_RIGHT_AND_CENTER} .workspace-split.mod-root .workspace-tab-header-container {
-    display: none !important;
-}
-body.${MODE_RIGHT_AND_CENTER} .workspace-split.mod-right-split .workspace-leaf:not(.${LEAF_TARGET}),
-body.${MODE_RIGHT_AND_CENTER} .workspace-split.mod-right-split .workspace-tabs:not(:has(.${LEAF_TARGET})) {
-    display: none !important;
-}
-
-/* \u5168\u5C40 Base \u7559\u767D\u89C4\u5219 */
-body.${BASE_TARGET} .workspace-leaf.${LEAF_TARGET} .view-content {
-    padding-left: 15vw !important;
-    padding-right: 15vw !important;
-}
-
-/* ==========================================
-   \u2728 \u7EC8\u6781\u7248\uFF1A\u6781\u7B80\u4FA7\u8FB9\u60AC\u6D6E\u5B57 (\u7834\u9664\u6324\u538B\u9650\u5236) \u2728
-   ========================================== */
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} {
-    position: relative !important;
-    overflow: visible !important;
-}
-
-/* \u6700\u5916\u5C42\u5BB9\u5668\uFF1A\u9ED8\u8BA4\u56FA\u5B9A\u5728\u53F3\u4FA7\u4E2D\u95F4 */
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} > .workspace-tab-header-container {
-    display: flex !important;
-    position: absolute !important;
-    right: 10px !important; 
-    top: 50% !important;
-    transform: translateY(-50%) !important; 
-    width: 32px !important;
-    height: auto !important;
-    max-height: 90vh !important;
-    flex-direction: column !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    z-index: 99 !important;
-    pointer-events: none; 
-    overflow: visible !important;
-}
-
-/* \u{1F680} \u5F3A\u529B\u6E05\u573A */
-body.${SETTING_VERTICAL_TABS_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} > .workspace-tab-header-container > * {
-    display: none !important;
-}
-
-/* \u{1F6E1}\uFE0F \u767D\u540D\u5355\u653E\u884C */
-body.${SETTING_VERTICAL_TABS_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} > .workspace-tab-header-container > .workspace-tab-header-container-inner {
-    display: flex !important;
-}
-
-/* \u5185\u90E8\u5217\u8868\uFF1A\u7EB5\u5411\u6392\u5217 */
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-container-inner {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 16px !important; 
-    margin: 0 !important;
-    padding: 0 !important;
-    pointer-events: auto;
-    overflow: visible !important;
-}
-
-/* \u5355\u4E2A\u9009\u9879\u5361\u7684\u5916\u90E8\u533A\u5757\uFF08\u6781\u7B80\u900F\u660E\uFF09 */
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header {
-    width: 32px !important;
-    height: auto !important;
-    min-height: 60px !important;
-    padding: 8px 0 !important;
-    margin: 0 !important;
-    background-color: transparent !important; 
-    border: none !important;
-    border-right: 2px solid transparent !important; 
-    border-radius: 0 !important; 
-    opacity: 0.3 !important; 
-    transition: all 0.3s ease !important;
-    cursor: pointer !important;
-    box-shadow: none !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    flex: none !important; 
-}
-
-/* \u91CD\u5851\u5185\u90E8\u6392\u7248\u7ED3\u6784 */
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-inner {
-    display: flex !important;
-    flex-direction: column !important;
-    width: 100% !important;
-    height: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    overflow: visible !important;
-}
-
-/* \u{1F525} \u6838\u5FC3\u4FEE\u590D\uFF1A\u5F3A\u884C\u8BA9\u6587\u5B57\u7AD6\u8D77\u6765\u5E76\u663E\u793A\u5168 (\u63A5\u5165\u8865\u4E01) \u{1F525} */
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-inner-title {
-    writing-mode: vertical-rl !important;
-    text-orientation: upright !important;
-    white-space: normal !important;
-    word-break: keep-all !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
-    text-align: center !important;
-    font-size: 20px !important;
-    font-weight: 500 !important;
-    letter-spacing: 4px !important;
-    line-height: 1 !important;
-    display: block !important;
-    flex: none !important;
-    transform: none !important;
-    color: var(--text-normal) !important;
-    padding: 0px 10px 0px 0px !important;
-    /* \u{1F447} \u52A0\u4E0A\u4E0B\u9762\u8FD9\u4E09\u884C\uFF0C\u9632\u6B62\u9F20\u6807\u7126\u70B9\u6216\u5149\u6807\u6B8B\u7559 */
-    user-select: none !important;
-    -webkit-user-select: none !important;
-    outline: none !important;
-}
-
-/* \u{1F5E1}\uFE0F \u5F7B\u5E95\u65A9\u6740 Obsidian \u539F\u751F\u7684\u9009\u9879\u5361\u5206\u9694\u7EBF (\u4F2A\u5143\u7D20) \u548C\u6B8B\u7559\u9634\u5F71 */
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header::before,
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header::after,
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-inner::before,
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-inner::after {
-    display: none !important;
-    content: none !important;
-}
-
-/* \u6E05\u9664\u53EF\u80FD\u5B58\u5728\u7684\u5185\u8FB9\u6846\u548C\u9634\u5F71 */
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-inner {
-    box-shadow: none !important;
-    border: none !important;
-}
-
-/* \u6781\u81F4\u5E72\u51C0\uFF1A\u65A9\u6389\u56FE\u6807\u548C\u5173\u95ED\u6309\u94AE */
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-inner-icon,
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-inner-close-button {
-    display: none !important;
-}
-
-/* \u6FC0\u6D3B\u6001\u548C\u60AC\u6D6E\u6001 (\u9ED8\u8BA4\u53F3\u4FA7\u6548\u679C) */
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header:hover,
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header.is-active {
-    opacity: 1 !important;
-    background-color: transparent !important;
-    border-right: 2px solid var(--interactive-accent) !important; 
-}
-
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header.is-active .workspace-tab-header-inner-title {
-    color: var(--interactive-accent) !important; 
-}
-
-/* \u9632\u6B62\u906E\u6321\u6B63\u6587\uFF1A\u53EA\u4F5C\u7528\u4E8E\u62E5\u6709\u5782\u76F4\u9009\u9879\u5361\u7684\u9762\u677F (\u63A5\u5165\u8865\u4E01\uFF0C\u4FEE\u6539\u4E3A 0px) */
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-leaf .view-content {
-    padding-right: 0px !important;
-}
-
-/* ==========================================
-   \u{1F31F} \u65B0\u589E\u7279\u6027\uFF1A\u5DE6\u53F3\u6807\u7B7E\u5206\u79BB\u6A21\u5F0F 
-   ========================================== */
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL}.${SETTING_SPLIT_TABS_CLASS} .workspace-split.mod-root .${VTAB_CONTAINER}.superzen-vtab-left > .workspace-tab-header-container {
-    right: auto !important;
-    left: -14px !important; /* \u5F3A\u5236\u505C\u9760\u5DE6\u4FA7 */
-    position: fixed !important; /* \u{1F4A1} \u5F3A\u70C8\u5EFA\u8BAE\u52A0\u4E0A\u8FD9\u4E00\u884C */
-}
-
-/* \u5DE6\u4FA7\u6807\u7B7E\u7684\u8FB9\u6846\u955C\u50CF\u53CD\u8F6C */
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL}.${SETTING_SPLIT_TABS_CLASS} .workspace-split.mod-root .${VTAB_CONTAINER}.superzen-vtab-left .workspace-tab-header {
-    border-right: none !important;
-    border-left: 2px solid transparent !important;
-}
-
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL}.${SETTING_SPLIT_TABS_CLASS} .workspace-split.mod-root .${VTAB_CONTAINER}.superzen-vtab-left .workspace-tab-header:hover,
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL}.${SETTING_SPLIT_TABS_CLASS} .workspace-split.mod-root .${VTAB_CONTAINER}.superzen-vtab-left .workspace-tab-header.is-active {
-    border-right: none !important;
-    border-left: 2px solid var(--interactive-accent) !important; 
-}
-
-/* \u5DE6\u4FA7\u6807\u7B7E\u7684\u5185\u8FB9\u8DDD\u955C\u50CF\u53CD\u8F6C */
-body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL}.${SETTING_SPLIT_TABS_CLASS} .workspace-split.mod-root .${VTAB_CONTAINER}.superzen-vtab-left .workspace-tab-header-inner-title {
-    padding: 0px 0px 0px 10px !important; 
-}
-`;
 var SuperZenPlugin = class extends import_obsidian.Plugin {
-  async onload() {
+  constructor() {
+    super(...arguments);
     this.isActive = false;
     this.targetLeaf = null;
     this.currentModeClass = null;
+  }
+  async onload() {
     await this.loadSettings();
     this.handleFullscreenChange = this.handleFullscreenChange.bind(this);
-    this.injectStyles();
     this.addSettingTab(new SuperZenSettingTab(this.app, this));
     this.addCommand({
-      id: "toggle-super-zen",
+      id: "toggle-zen-mode",
       name: "\u5F00\u542F/\u5173\u95ED \u5B9A\u5236\u7985\u6A21\u5F0F",
       callback: () => this.toggleZenMode()
     });
     this.addCommand({
-      id: "toggle-super-zen-dual-pane",
+      id: "toggle-dual-pane-mode",
       name: "\u5207\u6362 \u5355\u5C4F/\u53CC\u5C4F \u5BF9\u7167\u6A21\u5F0F",
       callback: () => this.toggleDualPaneMode()
     });
@@ -346,7 +73,6 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
   }
   onunload() {
     this.exitZenMode();
-    this.removeStyles();
   }
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -354,30 +80,17 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
   async saveSettings() {
     await this.saveData(this.settings);
   }
-  injectStyles() {
-    if (!document.getElementById(STYLE_ID)) {
-      this.styleEl = document.createElement("style");
-      this.styleEl.id = STYLE_ID;
-      this.styleEl.innerHTML = CSS_STYLES;
-      document.head.appendChild(this.styleEl);
-    }
-  }
-  removeStyles() {
-    const styleEl = document.getElementById(STYLE_ID);
-    if (styleEl) {
-      styleEl.remove();
-    }
-  }
   updateVTabContainer() {
-    document.querySelectorAll(`.${VTAB_CONTAINER}`).forEach((el) => {
+    const doc = activeDocument ?? document;
+    doc.querySelectorAll(`.${VTAB_CONTAINER}`).forEach((el) => {
       el.classList.remove(VTAB_CONTAINER);
       el.classList.remove("superzen-vtab-left");
       el.classList.remove("superzen-vtab-right");
     });
     if (!this.isActive || !this.targetLeaf) return;
-    const rootTabs = document.querySelectorAll(".workspace-split.mod-root .workspace-tabs");
+    const rootTabs = doc.querySelectorAll(".workspace-split.mod-root .workspace-tabs");
     if (rootTabs.length === 0) return;
-    const isDualPaneActive = document.body.classList.contains(SETTING_DUAL_PANE_CLASS);
+    const isDualPaneActive = doc.body.classList.contains(SETTING_DUAL_PANE_CLASS);
     if (this.settings.splitTabs && isDualPaneActive && rootTabs.length > 1) {
       const firstTab = rootTabs[0];
       firstTab.classList.add(VTAB_CONTAINER, "superzen-vtab-left");
@@ -390,7 +103,7 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
           lastTab.classList.add(VTAB_CONTAINER);
         }
       } else {
-        const targetContainer = this.targetLeaf.containerEl?.closest(".workspace-tabs");
+        const targetContainer = this.targetLeaf?.containerEl?.closest(".workspace-tabs");
         if (targetContainer) {
           targetContainer.classList.add(VTAB_CONTAINER);
         }
@@ -408,21 +121,31 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
     this.settings.keepDualPanes = !this.settings.keepDualPanes;
     await this.saveSettings();
     const statusStr = this.settings.keepDualPanes ? "\u5F00\u542F" : "\u5173\u95ED";
+    const doc = activeDocument ?? document;
     if (this.isActive) {
       if (this.currentModeClass === MODE_CENTER_FULL) {
-        const body = document.body;
         if (this.settings.keepDualPanes) {
-          body.classList.add(SETTING_DUAL_PANE_CLASS);
+          doc.body.classList.add(SETTING_DUAL_PANE_CLASS);
           new import_obsidian.Notice("SuperZen: \u5207\u6362\u81F3\u3010\u53CC\u5C4F\u5BF9\u7167\u3011");
         } else {
-          let activeLeaf = this.app.workspace.activeLeaf;
-          if (!activeLeaf) activeLeaf = this.app.workspace.getMostRecentLeaf();
+          let activeLeaf = this.app.workspace.getActiveViewOfType(import_obsidian.View)?.leaf ?? this.app.workspace.getMostRecentLeaf();
+          if (!activeLeaf) {
+            const domActive = doc.querySelector(".workspace-leaf.mod-active");
+            if (domActive) {
+              this.app.workspace.iterateAllLeaves((leaf) => {
+                const leafContainer = leaf.containerEl;
+                if (leafContainer === domActive || leafContainer?.contains(domActive)) {
+                  activeLeaf = leaf;
+                }
+              });
+            }
+          }
           if (activeLeaf && activeLeaf !== this.targetLeaf) {
-            if (this.targetLeaf && this.targetLeaf.containerEl) {
+            if (this.targetLeaf?.containerEl) {
               this.targetLeaf.containerEl.classList.remove(LEAF_TARGET);
             }
             this.targetLeaf = activeLeaf;
-            if (this.targetLeaf.containerEl) {
+            if (this.targetLeaf?.containerEl) {
               this.targetLeaf.containerEl.classList.add(LEAF_TARGET);
             }
             let isBaseFile = false;
@@ -436,12 +159,12 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
               }
             }
             if (isBaseFile) {
-              body.classList.add(BASE_TARGET);
+              doc.body.classList.add(BASE_TARGET);
             } else {
-              body.classList.remove(BASE_TARGET);
+              doc.body.classList.remove(BASE_TARGET);
             }
           }
-          body.classList.remove(SETTING_DUAL_PANE_CLASS);
+          doc.body.classList.remove(SETTING_DUAL_PANE_CLASS);
           new import_obsidian.Notice("SuperZen: \u5207\u6362\u81F3\u3010\u5355\u5C4F\u72EC\u5360\u3011");
         }
         this.updateVTabContainer();
@@ -453,12 +176,10 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
     }
   }
   enterZenMode() {
-    let activeLeaf = this.app.workspace.activeLeaf;
+    const doc = activeDocument ?? document;
+    let activeLeaf = this.app.workspace.getActiveViewOfType(import_obsidian.View)?.leaf ?? this.app.workspace.getMostRecentLeaf();
     if (!activeLeaf) {
-      activeLeaf = this.app.workspace.getMostRecentLeaf();
-    }
-    if (!activeLeaf) {
-      const domActive = document.querySelector(".workspace-leaf.mod-active");
+      const domActive = doc.querySelector(".workspace-leaf.mod-active");
       if (domActive) {
         this.app.workspace.iterateAllLeaves((leaf) => {
           const leafContainer = leaf.containerEl;
@@ -474,23 +195,24 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
     }
     this.targetLeaf = activeLeaf;
     this.isActive = true;
-    const root = this.targetLeaf.getRoot();
-    const body = document.body;
-    body.classList.add(BODY_ZEN_ACTIVE);
+    const workspace = this.app.workspace;
+    const root = this.targetLeaf.getRoot?.() ?? null;
+    doc.body.classList.add(BODY_ZEN_ACTIVE);
     if (this.settings.hideProperties) {
-      body.classList.add(SETTING_HIDE_PROPERTIES_CLASS);
+      doc.body.classList.add(SETTING_HIDE_PROPERTIES_CLASS);
     }
-    const containerEl = this.targetLeaf.containerEl;
-    if (containerEl) containerEl.classList.add(LEAF_TARGET);
+    if (this.targetLeaf.containerEl) {
+      this.targetLeaf.containerEl.classList.add(LEAF_TARGET);
+    }
     if (this.settings.verticalTabs) {
-      body.classList.add(SETTING_VERTICAL_TABS_CLASS);
+      doc.body.classList.add(SETTING_VERTICAL_TABS_CLASS);
     }
     if (this.settings.splitTabs) {
-      body.classList.add(SETTING_SPLIT_TABS_CLASS);
+      doc.body.classList.add(SETTING_SPLIT_TABS_CLASS);
     }
     if (this.settings.keepDualPanes) {
-      if (root === this.app.workspace.rootSplit) {
-        body.classList.add(SETTING_DUAL_PANE_CLASS);
+      if (root === workspace.rootSplit) {
+        doc.body.classList.add(SETTING_DUAL_PANE_CLASS);
       }
     }
     let isBaseFile = false;
@@ -504,62 +226,63 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
       }
     }
     if (isBaseFile) {
-      body.classList.add(BASE_TARGET);
+      doc.body.classList.add(BASE_TARGET);
     }
-    if (root === this.app.workspace.rootSplit) {
+    if (root === workspace.rootSplit) {
       this.currentModeClass = MODE_CENTER_FULL;
-      body.classList.add(MODE_CENTER_FULL);
-    } else if (root === this.app.workspace.leftSplit) {
+      doc.body.classList.add(MODE_CENTER_FULL);
+    } else if (root === workspace.leftSplit) {
       this.currentModeClass = MODE_LEFT_AND_CENTER;
-      body.classList.add(MODE_LEFT_AND_CENTER);
-    } else if (root === this.app.workspace.rightSplit) {
+      doc.body.classList.add(MODE_LEFT_AND_CENTER);
+    } else if (root === workspace.rightSplit) {
       if (isBaseFile) {
         this.currentModeClass = MODE_RIGHT_BASE_FULL;
-        body.classList.add(MODE_RIGHT_BASE_FULL);
+        doc.body.classList.add(MODE_RIGHT_BASE_FULL);
       } else {
         this.currentModeClass = MODE_RIGHT_AND_CENTER;
-        body.classList.add(MODE_RIGHT_AND_CENTER);
+        doc.body.classList.add(MODE_RIGHT_AND_CENTER);
       }
     }
-    if (!document.fullscreenElement) {
-      document.body.requestFullscreen().catch((err) => {
+    if (!doc.fullscreenElement) {
+      doc.body.requestFullscreen().catch((err) => {
         console.warn("SuperZen: \u8BF7\u6C42\u5168\u5C4F\u5931\u8D25, \u4F46\u7EE7\u7EED\u6267\u884C\u4E13\u6CE8\u6A21\u5F0F", err);
       });
     }
-    document.addEventListener("fullscreenchange", this.handleFullscreenChange);
+    doc.addEventListener("fullscreenchange", this.handleFullscreenChange);
     this.updateVTabContainer();
   }
   exitZenMode() {
     if (!this.isActive) return;
-    const body = document.body;
-    body.classList.remove(BODY_ZEN_ACTIVE);
-    body.classList.remove(BASE_TARGET);
-    body.classList.remove(SETTING_DUAL_PANE_CLASS);
-    body.classList.remove(SETTING_VERTICAL_TABS_CLASS);
-    body.classList.remove(SETTING_HIDE_PROPERTIES_CLASS);
-    body.classList.remove(SETTING_SPLIT_TABS_CLASS);
+    const doc = activeDocument ?? document;
+    doc.body.classList.remove(BODY_ZEN_ACTIVE);
+    doc.body.classList.remove(BASE_TARGET);
+    doc.body.classList.remove(SETTING_DUAL_PANE_CLASS);
+    doc.body.classList.remove(SETTING_VERTICAL_TABS_CLASS);
+    doc.body.classList.remove(SETTING_HIDE_PROPERTIES_CLASS);
+    doc.body.classList.remove(SETTING_SPLIT_TABS_CLASS);
     if (this.currentModeClass) {
-      body.classList.remove(this.currentModeClass);
+      doc.body.classList.remove(this.currentModeClass);
     }
-    if (this.targetLeaf && this.targetLeaf.containerEl) {
+    if (this.targetLeaf?.containerEl) {
       this.targetLeaf.containerEl.classList.remove(LEAF_TARGET);
     }
-    document.querySelectorAll(`.${VTAB_CONTAINER}`).forEach((el) => {
+    doc.querySelectorAll(`.${VTAB_CONTAINER}`).forEach((el) => {
       el.classList.remove(VTAB_CONTAINER);
       el.classList.remove("superzen-vtab-left");
       el.classList.remove("superzen-vtab-right");
     });
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {
+    if (doc.fullscreenElement) {
+      doc.exitFullscreen().catch(() => {
       });
     }
-    document.removeEventListener("fullscreenchange", this.handleFullscreenChange);
+    doc.removeEventListener("fullscreenchange", this.handleFullscreenChange);
     this.isActive = false;
     this.targetLeaf = null;
     this.currentModeClass = null;
   }
   handleFullscreenChange() {
-    if (!document.fullscreenElement && this.isActive) {
+    const doc = activeDocument ?? document;
+    if (!doc.fullscreenElement && this.isActive) {
       this.exitZenMode();
     }
   }
@@ -572,7 +295,7 @@ var SuperZenSettingTab = class extends import_obsidian.PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.createEl("h2", { text: "SuperZen \u5B9A\u5236\u7985\u6A21\u5F0F\u8BBE\u7F6E" });
+    new import_obsidian.Setting(containerEl).setName("SuperZen \u5B9A\u5236\u7985\u6A21\u5F0F\u8BBE\u7F6E").setHeading();
     new import_obsidian.Setting(containerEl).setName("\u53CC\u5C4F\u6A21\u5F0F").setDesc("\u5F00\u542F\u540E\uFF0C\u8FDB\u5165\u7985\u6A21\u5F0F\u65F6\u5C06\u4FDD\u7559\u591A\u7A97\u683C\u540C\u5C4F\u5BF9\u7167\u3002").addToggle((toggle) => toggle.setValue(this.plugin.settings.keepDualPanes).onChange(async (value) => {
       this.plugin.settings.keepDualPanes = value;
       await this.plugin.saveSettings();
@@ -581,10 +304,11 @@ var SuperZenSettingTab = class extends import_obsidian.PluginSettingTab {
       this.plugin.settings.hideProperties = value;
       await this.plugin.saveSettings();
       if (this.plugin.isActive) {
+        const doc = activeDocument ?? document;
         if (value) {
-          document.body.classList.add(SETTING_HIDE_PROPERTIES_CLASS);
+          doc.body.classList.add(SETTING_HIDE_PROPERTIES_CLASS);
         } else {
-          document.body.classList.remove(SETTING_HIDE_PROPERTIES_CLASS);
+          doc.body.classList.remove(SETTING_HIDE_PROPERTIES_CLASS);
         }
       }
     }));
@@ -592,10 +316,11 @@ var SuperZenSettingTab = class extends import_obsidian.PluginSettingTab {
       this.plugin.settings.verticalTabs = value;
       await this.plugin.saveSettings();
       if (this.plugin.isActive) {
+        const doc = activeDocument ?? document;
         if (value) {
-          document.body.classList.add(SETTING_VERTICAL_TABS_CLASS);
+          doc.body.classList.add(SETTING_VERTICAL_TABS_CLASS);
         } else {
-          document.body.classList.remove(SETTING_VERTICAL_TABS_CLASS);
+          doc.body.classList.remove(SETTING_VERTICAL_TABS_CLASS);
         }
       }
     }));
@@ -610,10 +335,11 @@ var SuperZenSettingTab = class extends import_obsidian.PluginSettingTab {
       this.plugin.settings.splitTabs = value;
       await this.plugin.saveSettings();
       if (this.plugin.isActive) {
+        const doc = activeDocument ?? document;
         if (value) {
-          document.body.classList.add(SETTING_SPLIT_TABS_CLASS);
+          doc.body.classList.add(SETTING_SPLIT_TABS_CLASS);
         } else {
-          document.body.classList.remove(SETTING_SPLIT_TABS_CLASS);
+          doc.body.classList.remove(SETTING_SPLIT_TABS_CLASS);
         }
         this.plugin.updateVTabContainer();
       }
