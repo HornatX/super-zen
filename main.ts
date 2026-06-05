@@ -5,6 +5,7 @@
  * 高级特性：极简悬浮侧边选项卡（彻底修复竖排文字被挤压的Bug，极致纯粹）
  * 增强特性：固定右侧悬浮标签机制
  * 新增特性：可配置是否在禅模式下隐藏笔记属性区域 (Properties)
+ * 新增特性：双屏模式下支持左右两侧独立显示悬浮标签 (左右标签)
  */
 
 import { App, Notice, Plugin, PluginSettingTab, Setting, WorkspaceLeaf, View } from 'obsidian';
@@ -14,7 +15,8 @@ interface SuperZenSettings {
     keepDualPanes: boolean;
     verticalTabs: boolean;
     fixedRightTabs: boolean;
-    hideProperties: boolean; // 【新增】隐藏属性区域设置
+    hideProperties: boolean; 
+    splitTabs: boolean; // 【新增】左右标签模式
 }
 
 // --- 常量定义 ---
@@ -27,7 +29,8 @@ const BASE_TARGET = "superzen-is-base-target";
 const SETTING_DUAL_PANE_CLASS = "superzen-dual-pane-mode";
 const SETTING_VERTICAL_TABS_CLASS = "superzen-vertical-tabs";
 const VTAB_CONTAINER = "superzen-vtab-container"; // 垂直标签的动态宿主
-const SETTING_HIDE_PROPERTIES_CLASS = "superzen-hide-properties"; // 【新增】控制属性面板隐藏的类
+const SETTING_HIDE_PROPERTIES_CLASS = "superzen-hide-properties"; 
+const SETTING_SPLIT_TABS_CLASS = "superzen-split-tabs"; // 【新增】左右标签控制类
 
 // 三大场景模式类
 const MODE_CENTER_FULL = "superzen-mode-center-full";
@@ -40,7 +43,8 @@ const DEFAULT_SETTINGS: SuperZenSettings = {
     keepDualPanes: false,
     verticalTabs: false,
     fixedRightTabs: false,
-    hideProperties: true // 【新增】默认隐藏属性区域，保持旧版逻辑一致
+    hideProperties: true,
+    splitTabs: false // 【新增】默认关闭，保持原来逻辑
 };
 
 // --- 核心 CSS 样式 ---
@@ -57,7 +61,6 @@ body.${BODY_ZEN_ACTIVE} .search-header-container {
     display: none !important;
 }
 
-/* 【新增】独立控制属性区域隐藏逻辑 */
 body.${BODY_ZEN_ACTIVE}.${SETTING_HIDE_PROPERTIES_CLASS} .metadata-container,
 body.${BODY_ZEN_ACTIVE}.${SETTING_HIDE_PROPERTIES_CLASS} .metadata-properties-heading {
     display: none !important;
@@ -158,7 +161,7 @@ body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FUL
     overflow: visible !important;
 }
 
-/* 最外层容器：固定在右侧中间 */
+/* 最外层容器：默认固定在右侧中间 */
 body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} > .workspace-tab-header-container {
     display: flex !important;
     position: absolute !important;
@@ -230,9 +233,43 @@ body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FUL
     overflow: visible !important;
 }
 
-/* 🔥 核心修复：强行让文字竖起来并显示全 🔥 */
+/* 🔥 核心修复：强行让文字竖起来并显示全 (接入补丁) 🔥 */
 body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-inner-title {
-    
+    writing-mode: vertical-rl !important;
+    text-orientation: upright !important;
+    white-space: normal !important;
+    word-break: keep-all !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    text-align: center !important;
+    font-size: 20px !important;
+    font-weight: 500 !important;
+    letter-spacing: 4px !important;
+    line-height: 1 !important;
+    display: block !important;
+    flex: none !important;
+    transform: none !important;
+    color: var(--text-normal) !important;
+    padding: 0px 10px 0px 0px !important;
+    /* 👇 加上下面这三行，防止鼠标焦点或光标残留 */
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    outline: none !important;
+}
+
+/* 🗡️ 彻底斩杀 Obsidian 原生的选项卡分隔线 (伪元素) 和残留阴影 */
+body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header::before,
+body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header::after,
+body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-inner::before,
+body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-inner::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* 清除可能存在的内边框和阴影 */
+body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-inner {
+    box-shadow: none !important;
+    border: none !important;
 }
 
 /* 极致干净：斩掉图标和关闭按钮 */
@@ -241,7 +278,7 @@ body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FUL
     display: none !important;
 }
 
-/* 激活态和悬浮态 */
+/* 激活态和悬浮态 (默认右侧效果) */
 body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header:hover,
 body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header.is-active {
     opacity: 1 !important;
@@ -253,9 +290,35 @@ body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FUL
     color: var(--interactive-accent) !important; 
 }
 
-/* 防止遮挡正文：只作用于拥有垂直选项卡的面板 */
+/* 防止遮挡正文：只作用于拥有垂直选项卡的面板 (接入补丁，修改为 0px) */
 body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-leaf .view-content {
-    padding-right: 60px !important;
+    padding-right: 0px !important;
+}
+
+/* ==========================================
+   🌟 新增特性：左右标签分离模式 
+   ========================================== */
+body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL}.${SETTING_SPLIT_TABS_CLASS} .workspace-split.mod-root .${VTAB_CONTAINER}.superzen-vtab-left > .workspace-tab-header-container {
+    right: auto !important;
+    left: -14px !important; /* 强制停靠左侧 */
+    position: fixed !important; /* 💡 强烈建议加上这一行 */
+}
+
+/* 左侧标签的边框镜像反转 */
+body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL}.${SETTING_SPLIT_TABS_CLASS} .workspace-split.mod-root .${VTAB_CONTAINER}.superzen-vtab-left .workspace-tab-header {
+    border-right: none !important;
+    border-left: 2px solid transparent !important;
+}
+
+body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL}.${SETTING_SPLIT_TABS_CLASS} .workspace-split.mod-root .${VTAB_CONTAINER}.superzen-vtab-left .workspace-tab-header:hover,
+body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL}.${SETTING_SPLIT_TABS_CLASS} .workspace-split.mod-root .${VTAB_CONTAINER}.superzen-vtab-left .workspace-tab-header.is-active {
+    border-right: none !important;
+    border-left: 2px solid var(--interactive-accent) !important; 
+}
+
+/* 左侧标签的内边距镜像反转 */
+body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL}.${SETTING_SPLIT_TABS_CLASS} .workspace-split.mod-root .${VTAB_CONTAINER}.superzen-vtab-left .workspace-tab-header-inner-title {
+    padding: 0px 0px 0px 10px !important; 
 }
 `;
 
@@ -278,21 +341,18 @@ export default class SuperZenPlugin extends Plugin {
         this.injectStyles();
         this.addSettingTab(new SuperZenSettingTab(this.app, this));
 
-        // 核心快捷键：开关禅模式
         this.addCommand({
             id: "toggle-super-zen",
             name: "开启/关闭 定制禅模式",
             callback: () => this.toggleZenMode()
         });
 
-        // 快捷键：在单屏和双屏之间动态切换
         this.addCommand({
             id: "toggle-super-zen-dual-pane",
             name: "切换 单屏/双屏 对照模式",
             callback: () => this.toggleDualPaneMode()
         });
 
-        // 监听分屏拖动以动态更新垂直选项卡
         this.registerEvent(
             this.app.workspace.on("layout-change", () => {
                 if (this.isActive) {
@@ -332,7 +392,12 @@ export default class SuperZenPlugin extends Plugin {
     }
 
     updateVTabContainer() {
-        document.querySelectorAll(`.${VTAB_CONTAINER}`).forEach(el => el.classList.remove(VTAB_CONTAINER));
+        // 先清理全局已挂载的类
+        document.querySelectorAll(`.${VTAB_CONTAINER}`).forEach(el => {
+            el.classList.remove(VTAB_CONTAINER);
+            el.classList.remove('superzen-vtab-left');
+            el.classList.remove('superzen-vtab-right');
+        });
 
         if (!this.isActive || !this.targetLeaf) return;
 
@@ -341,15 +406,27 @@ export default class SuperZenPlugin extends Plugin {
 
         const isDualPaneActive = document.body.classList.contains(SETTING_DUAL_PANE_CLASS);
 
-        if (this.settings.fixedRightTabs && isDualPaneActive) {
+        // 新增的“左右标签”逻辑 (需至少两个面板才进行分列)
+        if (this.settings.splitTabs && isDualPaneActive && rootTabs.length > 1) {
+            // 第一个面板的标签挂在左边
+            const firstTab = rootTabs[0];
+            firstTab.classList.add(VTAB_CONTAINER, 'superzen-vtab-left');
+            
+            // 最后一个面板的标签挂在右边
             const lastTab = rootTabs[rootTabs.length - 1];
-            if (lastTab) {
-                lastTab.classList.add(VTAB_CONTAINER);
-            }
+            lastTab.classList.add(VTAB_CONTAINER, 'superzen-vtab-right');
         } else {
-            const targetContainer = (this.targetLeaf as any).containerEl?.closest('.workspace-tabs');
-            if (targetContainer) {
-                targetContainer.classList.add(VTAB_CONTAINER);
+            // 维持原来的处理逻辑（固定右侧 或 跟随焦点）
+            if (this.settings.fixedRightTabs && isDualPaneActive) {
+                const lastTab = rootTabs[rootTabs.length - 1];
+                if (lastTab) {
+                    lastTab.classList.add(VTAB_CONTAINER);
+                }
+            } else {
+                const targetContainer = (this.targetLeaf as any).containerEl?.closest('.workspace-tabs');
+                if (targetContainer) {
+                    targetContainer.classList.add(VTAB_CONTAINER);
+                }
             }
         }
     }
@@ -450,7 +527,6 @@ export default class SuperZenPlugin extends Plugin {
 
         body.classList.add(BODY_ZEN_ACTIVE);
         
-        // 【新增】判断是否应用属性面板隐藏的类名
         if (this.settings.hideProperties) {
             body.classList.add(SETTING_HIDE_PROPERTIES_CLASS);
         }
@@ -460,6 +536,11 @@ export default class SuperZenPlugin extends Plugin {
 
         if (this.settings.verticalTabs) {
             body.classList.add(SETTING_VERTICAL_TABS_CLASS);
+        }
+
+        // 应用左右标签专属类
+        if (this.settings.splitTabs) {
+            body.classList.add(SETTING_SPLIT_TABS_CLASS);
         }
 
         if (this.settings.keepDualPanes) {
@@ -517,7 +598,8 @@ export default class SuperZenPlugin extends Plugin {
         body.classList.remove(BASE_TARGET);
         body.classList.remove(SETTING_DUAL_PANE_CLASS);
         body.classList.remove(SETTING_VERTICAL_TABS_CLASS);
-        body.classList.remove(SETTING_HIDE_PROPERTIES_CLASS); // 【新增】退出时移除隐藏属性的类名
+        body.classList.remove(SETTING_HIDE_PROPERTIES_CLASS); 
+        body.classList.remove(SETTING_SPLIT_TABS_CLASS); // 移除左右标签类
 
         if (this.currentModeClass) {
             body.classList.remove(this.currentModeClass);
@@ -527,7 +609,11 @@ export default class SuperZenPlugin extends Plugin {
             (this.targetLeaf as any).containerEl.classList.remove(LEAF_TARGET);
         }
 
-        document.querySelectorAll(`.${VTAB_CONTAINER}`).forEach(el => el.classList.remove(VTAB_CONTAINER));
+        document.querySelectorAll(`.${VTAB_CONTAINER}`).forEach(el => {
+            el.classList.remove(VTAB_CONTAINER);
+            el.classList.remove('superzen-vtab-left');
+            el.classList.remove('superzen-vtab-right');
+        });
 
         if (document.fullscreenElement) {
             document.exitFullscreen().catch(() => { });
@@ -571,7 +657,6 @@ class SuperZenSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
 
-        // 【新增】属性区域开关设置
         new Setting(containerEl)
             .setName('隐藏笔记属性区域 (Properties)')
             .setDesc('开启后，进入禅模式将自动隐藏文档顶部的属性信息面板（YAML区域），让写作更沉浸。')
@@ -580,8 +665,6 @@ class SuperZenSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     this.plugin.settings.hideProperties = value;
                     await this.plugin.saveSettings();
-
-                    // 如果当前处在禅模式下，实现所见即所得的动态改变
                     if (this.plugin.isActive) {
                         if (value) {
                             document.body.classList.add(SETTING_HIDE_PROPERTIES_CLASS);
@@ -599,7 +682,6 @@ class SuperZenSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     this.plugin.settings.verticalTabs = value;
                     await this.plugin.saveSettings();
-
                     if (this.plugin.isActive) {
                         if (value) {
                             document.body.classList.add(SETTING_VERTICAL_TABS_CLASS);
@@ -618,6 +700,26 @@ class SuperZenSettingTab extends PluginSettingTab {
                     this.plugin.settings.fixedRightTabs = value;
                     await this.plugin.saveSettings();
                     if (this.plugin.isActive) {
+                        this.plugin.updateVTabContainer();
+                    }
+                }));
+
+        // 【新增】左右标签开关
+        new Setting(containerEl)
+            .setName('左右标签 (双屏模式专用)')
+            .setDesc('关闭时，保持当前行为(仅单侧显示，跟随焦点或固定右侧)。开启后：双屏对照时，左侧屏幕的选项卡固定在左侧边缘，右侧屏幕的选项卡固定在右侧边缘。')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.splitTabs)
+                .onChange(async (value) => {
+                    this.plugin.settings.splitTabs = value;
+                    await this.plugin.saveSettings();
+                    // 支持禅模式下实时生效
+                    if (this.plugin.isActive) {
+                        if (value) {
+                            document.body.classList.add(SETTING_SPLIT_TABS_CLASS);
+                        } else {
+                            document.body.classList.remove(SETTING_SPLIT_TABS_CLASS);
+                        }
                         this.plugin.updateVTabContainer();
                     }
                 }));

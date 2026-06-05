@@ -31,6 +31,7 @@ var SETTING_DUAL_PANE_CLASS = "superzen-dual-pane-mode";
 var SETTING_VERTICAL_TABS_CLASS = "superzen-vertical-tabs";
 var VTAB_CONTAINER = "superzen-vtab-container";
 var SETTING_HIDE_PROPERTIES_CLASS = "superzen-hide-properties";
+var SETTING_SPLIT_TABS_CLASS = "superzen-split-tabs";
 var MODE_CENTER_FULL = "superzen-mode-center-full";
 var MODE_LEFT_AND_CENTER = "superzen-mode-left-center";
 var MODE_RIGHT_BASE_FULL = "superzen-mode-right-base-full";
@@ -39,8 +40,9 @@ var DEFAULT_SETTINGS = {
   keepDualPanes: false,
   verticalTabs: false,
   fixedRightTabs: false,
-  hideProperties: true
-  // 【新增】默认隐藏属性区域，保持旧版逻辑一致
+  hideProperties: true,
+  splitTabs: false
+  // 【新增】默认关闭，保持原来逻辑
 };
 var CSS_STYLES = `
 /* ==========================================
@@ -55,7 +57,6 @@ body.${BODY_ZEN_ACTIVE} .search-header-container {
     display: none !important;
 }
 
-/* \u3010\u65B0\u589E\u3011\u72EC\u7ACB\u63A7\u5236\u5C5E\u6027\u533A\u57DF\u9690\u85CF\u903B\u8F91 */
 body.${BODY_ZEN_ACTIVE}.${SETTING_HIDE_PROPERTIES_CLASS} .metadata-container,
 body.${BODY_ZEN_ACTIVE}.${SETTING_HIDE_PROPERTIES_CLASS} .metadata-properties-heading {
     display: none !important;
@@ -156,7 +157,7 @@ body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FUL
     overflow: visible !important;
 }
 
-/* \u6700\u5916\u5C42\u5BB9\u5668\uFF1A\u56FA\u5B9A\u5728\u53F3\u4FA7\u4E2D\u95F4 */
+/* \u6700\u5916\u5C42\u5BB9\u5668\uFF1A\u9ED8\u8BA4\u56FA\u5B9A\u5728\u53F3\u4FA7\u4E2D\u95F4 */
 body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} > .workspace-tab-header-container {
     display: flex !important;
     position: absolute !important;
@@ -228,9 +229,43 @@ body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FUL
     overflow: visible !important;
 }
 
-/* \u{1F525} \u6838\u5FC3\u4FEE\u590D\uFF1A\u5F3A\u884C\u8BA9\u6587\u5B57\u7AD6\u8D77\u6765\u5E76\u663E\u793A\u5168 \u{1F525} */
+/* \u{1F525} \u6838\u5FC3\u4FEE\u590D\uFF1A\u5F3A\u884C\u8BA9\u6587\u5B57\u7AD6\u8D77\u6765\u5E76\u663E\u793A\u5168 (\u63A5\u5165\u8865\u4E01) \u{1F525} */
 body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-inner-title {
-    
+    writing-mode: vertical-rl !important;
+    text-orientation: upright !important;
+    white-space: normal !important;
+    word-break: keep-all !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    text-align: center !important;
+    font-size: 20px !important;
+    font-weight: 500 !important;
+    letter-spacing: 4px !important;
+    line-height: 1 !important;
+    display: block !important;
+    flex: none !important;
+    transform: none !important;
+    color: var(--text-normal) !important;
+    padding: 0px 10px 0px 0px !important;
+    /* \u{1F447} \u52A0\u4E0A\u4E0B\u9762\u8FD9\u4E09\u884C\uFF0C\u9632\u6B62\u9F20\u6807\u7126\u70B9\u6216\u5149\u6807\u6B8B\u7559 */
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    outline: none !important;
+}
+
+/* \u{1F5E1}\uFE0F \u5F7B\u5E95\u65A9\u6740 Obsidian \u539F\u751F\u7684\u9009\u9879\u5361\u5206\u9694\u7EBF (\u4F2A\u5143\u7D20) \u548C\u6B8B\u7559\u9634\u5F71 */
+body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header::before,
+body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header::after,
+body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-inner::before,
+body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-inner::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* \u6E05\u9664\u53EF\u80FD\u5B58\u5728\u7684\u5185\u8FB9\u6846\u548C\u9634\u5F71 */
+body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header-inner {
+    box-shadow: none !important;
+    border: none !important;
 }
 
 /* \u6781\u81F4\u5E72\u51C0\uFF1A\u65A9\u6389\u56FE\u6807\u548C\u5173\u95ED\u6309\u94AE */
@@ -239,7 +274,7 @@ body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FUL
     display: none !important;
 }
 
-/* \u6FC0\u6D3B\u6001\u548C\u60AC\u6D6E\u6001 */
+/* \u6FC0\u6D3B\u6001\u548C\u60AC\u6D6E\u6001 (\u9ED8\u8BA4\u53F3\u4FA7\u6548\u679C) */
 body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header:hover,
 body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-tab-header.is-active {
     opacity: 1 !important;
@@ -251,9 +286,35 @@ body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FUL
     color: var(--interactive-accent) !important; 
 }
 
-/* \u9632\u6B62\u906E\u6321\u6B63\u6587\uFF1A\u53EA\u4F5C\u7528\u4E8E\u62E5\u6709\u5782\u76F4\u9009\u9879\u5361\u7684\u9762\u677F */
+/* \u9632\u6B62\u906E\u6321\u6B63\u6587\uFF1A\u53EA\u4F5C\u7528\u4E8E\u62E5\u6709\u5782\u76F4\u9009\u9879\u5361\u7684\u9762\u677F (\u63A5\u5165\u8865\u4E01\uFF0C\u4FEE\u6539\u4E3A 0px) */
 body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL} .workspace-split.mod-root .${VTAB_CONTAINER} .workspace-leaf .view-content {
-    padding-right: 60px !important;
+    padding-right: 0px !important;
+}
+
+/* ==========================================
+   \u{1F31F} \u65B0\u589E\u7279\u6027\uFF1A\u5DE6\u53F3\u6807\u7B7E\u5206\u79BB\u6A21\u5F0F 
+   ========================================== */
+body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL}.${SETTING_SPLIT_TABS_CLASS} .workspace-split.mod-root .${VTAB_CONTAINER}.superzen-vtab-left > .workspace-tab-header-container {
+    right: auto !important;
+    left: -14px !important; /* \u5F3A\u5236\u505C\u9760\u5DE6\u4FA7 */
+    position: fixed !important; /* \u{1F4A1} \u5F3A\u70C8\u5EFA\u8BAE\u52A0\u4E0A\u8FD9\u4E00\u884C */
+}
+
+/* \u5DE6\u4FA7\u6807\u7B7E\u7684\u8FB9\u6846\u955C\u50CF\u53CD\u8F6C */
+body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL}.${SETTING_SPLIT_TABS_CLASS} .workspace-split.mod-root .${VTAB_CONTAINER}.superzen-vtab-left .workspace-tab-header {
+    border-right: none !important;
+    border-left: 2px solid transparent !important;
+}
+
+body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL}.${SETTING_SPLIT_TABS_CLASS} .workspace-split.mod-root .${VTAB_CONTAINER}.superzen-vtab-left .workspace-tab-header:hover,
+body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL}.${SETTING_SPLIT_TABS_CLASS} .workspace-split.mod-root .${VTAB_CONTAINER}.superzen-vtab-left .workspace-tab-header.is-active {
+    border-right: none !important;
+    border-left: 2px solid var(--interactive-accent) !important; 
+}
+
+/* \u5DE6\u4FA7\u6807\u7B7E\u7684\u5185\u8FB9\u8DDD\u955C\u50CF\u53CD\u8F6C */
+body.${SETTING_VERTICAL_TABS_CLASS}.${SETTING_DUAL_PANE_CLASS}.${MODE_CENTER_FULL}.${SETTING_SPLIT_TABS_CLASS} .workspace-split.mod-root .${VTAB_CONTAINER}.superzen-vtab-left .workspace-tab-header-inner-title {
+    padding: 0px 0px 0px 10px !important; 
 }
 `;
 var SuperZenPlugin = class extends import_obsidian.Plugin {
@@ -308,20 +369,31 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
     }
   }
   updateVTabContainer() {
-    document.querySelectorAll(`.${VTAB_CONTAINER}`).forEach((el) => el.classList.remove(VTAB_CONTAINER));
+    document.querySelectorAll(`.${VTAB_CONTAINER}`).forEach((el) => {
+      el.classList.remove(VTAB_CONTAINER);
+      el.classList.remove("superzen-vtab-left");
+      el.classList.remove("superzen-vtab-right");
+    });
     if (!this.isActive || !this.targetLeaf) return;
     const rootTabs = document.querySelectorAll(".workspace-split.mod-root .workspace-tabs");
     if (rootTabs.length === 0) return;
     const isDualPaneActive = document.body.classList.contains(SETTING_DUAL_PANE_CLASS);
-    if (this.settings.fixedRightTabs && isDualPaneActive) {
+    if (this.settings.splitTabs && isDualPaneActive && rootTabs.length > 1) {
+      const firstTab = rootTabs[0];
+      firstTab.classList.add(VTAB_CONTAINER, "superzen-vtab-left");
       const lastTab = rootTabs[rootTabs.length - 1];
-      if (lastTab) {
-        lastTab.classList.add(VTAB_CONTAINER);
-      }
+      lastTab.classList.add(VTAB_CONTAINER, "superzen-vtab-right");
     } else {
-      const targetContainer = this.targetLeaf.containerEl?.closest(".workspace-tabs");
-      if (targetContainer) {
-        targetContainer.classList.add(VTAB_CONTAINER);
+      if (this.settings.fixedRightTabs && isDualPaneActive) {
+        const lastTab = rootTabs[rootTabs.length - 1];
+        if (lastTab) {
+          lastTab.classList.add(VTAB_CONTAINER);
+        }
+      } else {
+        const targetContainer = this.targetLeaf.containerEl?.closest(".workspace-tabs");
+        if (targetContainer) {
+          targetContainer.classList.add(VTAB_CONTAINER);
+        }
       }
     }
   }
@@ -413,6 +485,9 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
     if (this.settings.verticalTabs) {
       body.classList.add(SETTING_VERTICAL_TABS_CLASS);
     }
+    if (this.settings.splitTabs) {
+      body.classList.add(SETTING_SPLIT_TABS_CLASS);
+    }
     if (this.settings.keepDualPanes) {
       if (root === this.app.workspace.rootSplit) {
         body.classList.add(SETTING_DUAL_PANE_CLASS);
@@ -462,13 +537,18 @@ var SuperZenPlugin = class extends import_obsidian.Plugin {
     body.classList.remove(SETTING_DUAL_PANE_CLASS);
     body.classList.remove(SETTING_VERTICAL_TABS_CLASS);
     body.classList.remove(SETTING_HIDE_PROPERTIES_CLASS);
+    body.classList.remove(SETTING_SPLIT_TABS_CLASS);
     if (this.currentModeClass) {
       body.classList.remove(this.currentModeClass);
     }
     if (this.targetLeaf && this.targetLeaf.containerEl) {
       this.targetLeaf.containerEl.classList.remove(LEAF_TARGET);
     }
-    document.querySelectorAll(`.${VTAB_CONTAINER}`).forEach((el) => el.classList.remove(VTAB_CONTAINER));
+    document.querySelectorAll(`.${VTAB_CONTAINER}`).forEach((el) => {
+      el.classList.remove(VTAB_CONTAINER);
+      el.classList.remove("superzen-vtab-left");
+      el.classList.remove("superzen-vtab-right");
+    });
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(() => {
       });
@@ -523,6 +603,18 @@ var SuperZenSettingTab = class extends import_obsidian.PluginSettingTab {
       this.plugin.settings.fixedRightTabs = value;
       await this.plugin.saveSettings();
       if (this.plugin.isActive) {
+        this.plugin.updateVTabContainer();
+      }
+    }));
+    new import_obsidian.Setting(containerEl).setName("\u5DE6\u53F3\u6807\u7B7E (\u53CC\u5C4F\u6A21\u5F0F\u4E13\u7528)").setDesc("\u5173\u95ED\u65F6\uFF0C\u4FDD\u6301\u5F53\u524D\u884C\u4E3A(\u4EC5\u5355\u4FA7\u663E\u793A\uFF0C\u8DDF\u968F\u7126\u70B9\u6216\u56FA\u5B9A\u53F3\u4FA7)\u3002\u5F00\u542F\u540E\uFF1A\u53CC\u5C4F\u5BF9\u7167\u65F6\uFF0C\u5DE6\u4FA7\u5C4F\u5E55\u7684\u9009\u9879\u5361\u56FA\u5B9A\u5728\u5DE6\u4FA7\u8FB9\u7F18\uFF0C\u53F3\u4FA7\u5C4F\u5E55\u7684\u9009\u9879\u5361\u56FA\u5B9A\u5728\u53F3\u4FA7\u8FB9\u7F18\u3002").addToggle((toggle) => toggle.setValue(this.plugin.settings.splitTabs).onChange(async (value) => {
+      this.plugin.settings.splitTabs = value;
+      await this.plugin.saveSettings();
+      if (this.plugin.isActive) {
+        if (value) {
+          document.body.classList.add(SETTING_SPLIT_TABS_CLASS);
+        } else {
+          document.body.classList.remove(SETTING_SPLIT_TABS_CLASS);
+        }
         this.plugin.updateVTabContainer();
       }
     }));

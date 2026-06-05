@@ -1,6 +1,10 @@
-# SuperZen
+# SuperZen (禅/专注模式)
 
-https://www.bilibili.com/video/BV1M5GR6vE11/?vd_source=21489769d609f571940f382a0ddd038f
+如果您觉得这款插件对您有帮助，欢迎在小红书（RED）上关注我，我会在那里分享更多技巧、教程和更新。
+
+If you find this plugin helpful, feel free to follow me on Xiaohongshu (RED) where I share more tips, tutorials, and updates.
+
+https://www.xiaohongshu.com/user/profile/6353523d000000001802f8ae?xsec_token=YB4vLkLfzOijtg8c1Vh12ZASaI1ByqPPYi82ZzKbG72qE=&xsec_source=app_share&xhsshare=QQ&appuid=6353523d000000001802f8ae&apptime=1780631605&share_id=3846902afcd94e2ab78467cd7b9b5669
 
 SuperZen is an ultimate focus (Zen) mode plugin for Obsidian. It goes beyond simple distraction-free editing by completely striping away standard UI clutter and introducing innovative **edge-floating vertical text tabs** and **smart dual-pane split-screen comparison** for deep focus sessions.
 
