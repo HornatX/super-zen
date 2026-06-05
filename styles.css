@@ -8,247 +8,247 @@ body.superzen-is-active .workspace-sidedock-vault-profile,
 body.superzen-is-active .view-header,
 body.superzen-is-active .nav-header,
 body.superzen-is-active .search-header-container {
-    display: none !important;
+    display: none ;
 }
 
 body.superzen-is-active.superzen-hide-properties .metadata-container,
 body.superzen-is-active.superzen-hide-properties .metadata-properties-heading {
-    display: none !important;
+    display: none ;
 }
 
 body.superzen-is-active .titlebar,
 body.superzen-is-active .workspace-tab-header-container,
 body.superzen-is-active .workspace-leaf.superzen-target-leaf .view-header {
-    display: none !important;
+    display: none ;
 }
 
 body.superzen-is-active .floating-heading-container {
-    display: none !important;
+    display: none ;
 }
 
 /* 拖拽条隐藏逻辑 */
 body.superzen-is-active .workspace-split.mod-left-split > .workspace-leaf-resize-handle,
 body.superzen-is-active .workspace-split.mod-right-split > .workspace-leaf-resize-handle {
-    display: none !important;
+    display: none ;
 }
 body.superzen-is-active:not(.superzen-dual-pane-mode) .workspace-split.mod-root .workspace-leaf-resize-handle {
-    display: none !important;
+    display: none ;
 }
 
 /* 逻辑一：正文全屏 */
 body.superzen-mode-center-full .workspace-split.mod-left-split,
 body.superzen-mode-center-full .workspace-split.mod-right-split {
-    display: none !important;
+    display: none ;
 }
 body.superzen-mode-center-full .workspace-split.mod-root .workspace-tab-header-container {
-    display: none !important;
+    display: none ;
 }
 
 /* 智能双屏逻辑 */
 body.superzen-mode-center-full:not(.superzen-dual-pane-mode) .workspace-split.mod-root .workspace-leaf:not(.superzen-target-leaf),
 body.superzen-mode-center-full:not(.superzen-dual-pane-mode) .workspace-split.mod-root .workspace-tabs:not(:has(.superzen-target-leaf)),
 body.superzen-mode-center-full:not(.superzen-dual-pane-mode) .workspace-split.mod-root .workspace-split:not(:has(.superzen-target-leaf)) {
-    display: none !important;
+    display: none ;
 }
 
 /* 逻辑二：左侧 + 正文 */
 body.superzen-mode-left-center .workspace-split.mod-right-split {
-    display: none !important;
+    display: none ;
 }
 body.superzen-mode-left-center .workspace-split.mod-left-split .workspace-tab-header-container,
 body.superzen-mode-left-center .workspace-split.mod-root .workspace-tab-header-container {
-    display: none !important;
+    display: none ;
 }
 body.superzen-mode-left-center .workspace-split.mod-left-split .workspace-leaf:not(.superzen-target-leaf),
 body.superzen-mode-left-center .workspace-split.mod-left-split .workspace-tabs:not(:has(.superzen-target-leaf)) {
-    display: none !important;
+    display: none ;
 }
 
 /* 逻辑三 (A)：右侧 Base 文件全屏 */
 body.superzen-mode-right-base-full .workspace-split.mod-left-split,
 body.superzen-mode-right-base-full .workspace-split.mod-root {
-    display: none !important;
+    display: none ;
 }
 body.superzen-mode-right-base-full .workspace-split.mod-right-split .workspace-tab-header-container {
-    display: none !important;
+    display: none ;
 }
 body.superzen-mode-right-base-full .workspace-split.mod-right-split .workspace-leaf:not(.superzen-target-leaf),
 body.superzen-mode-right-base-full .workspace-split.mod-right-split .workspace-tabs:not(:has(.superzen-target-leaf)),
 body.superzen-mode-right-base-full .workspace-split.mod-right-split .workspace-split:not(:has(.superzen-target-leaf)) {
-    display: none !important;
+    display: none ;
 }
 body.superzen-mode-right-base-full .workspace-split.mod-right-split {
-    width: 100% !important;
-    max-width: none !important;
-    flex-grow: 1 !important;
-    border: none !important;
+    width: 100% ;
+    max-width: none ;
+    flex-grow: 1 ;
+    border: none ;
 }
 
 /* 逻辑三 (B)：右侧普通面板 + 正文 */
 body.superzen-mode-right-center .workspace-split.mod-left-split {
-    display: none !important;
+    display: none ;
 }
 body.superzen-mode-right-center .workspace-split.mod-right-split .workspace-tab-header-container,
 body.superzen-mode-right-center .workspace-split.mod-root .workspace-tab-header-container {
-    display: none !important;
+    display: none ;
 }
 body.superzen-mode-right-center .workspace-split.mod-right-split .workspace-leaf:not(.superzen-target-leaf),
 body.superzen-mode-right-center .workspace-split.mod-right-split .workspace-tabs:not(:has(.superzen-target-leaf)) {
-    display: none !important;
+    display: none ;
 }
 
 /* 全局 Base 留白规则 */
 body.superzen-is-base-target .workspace-leaf.superzen-target-leaf .view-content {
-    padding-left: 15vw !important;
-    padding-right: 15vw !important;
+    padding-left: 15vw ;
+    padding-right: 15vw ;
 }
 
 /* ==========================================
    极简侧边悬浮字 (破除挤压限制)
    ========================================== */
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container {
-    position: relative !important;
-    overflow: visible !important;
+    position: relative ;
+    overflow: visible ;
 }
 
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container > .workspace-tab-header-container {
-    display: flex !important;
-    position: absolute !important;
-    right: 10px !important; 
-    top: 50% !important;
-    transform: translateY(-50%) !important; 
-    width: 32px !important;
-    height: auto !important;
-    max-height: 90vh !important;
-    flex-direction: column !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    z-index: 99 !important;
+    display: flex ;
+    position: absolute ;
+    right: 10px ; 
+    top: 50% ;
+    transform: translateY(-50%) ; 
+    width: 32px ;
+    height: auto ;
+    max-height: 90vh ;
+    flex-direction: column ;
+    background: transparent ;
+    border: none ;
+    box-shadow: none ;
+    z-index: 99 ;
     pointer-events: none; 
-    overflow: visible !important;
+    overflow: visible ;
 }
 
 body.superzen-vertical-tabs.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container > .workspace-tab-header-container > * {
-    display: none !important;
+    display: none ;
 }
 
 body.superzen-vertical-tabs.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container > .workspace-tab-header-container > .workspace-tab-header-container-inner {
-    display: flex !important;
+    display: flex ;
 }
 
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header-container-inner {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 16px !important; 
-    margin: 0 !important;
-    padding: 0 !important;
+    display: flex ;
+    flex-direction: column ;
+    gap: 16px ; 
+    margin: 0 ;
+    padding: 0 ;
     pointer-events: auto;
-    overflow: visible !important;
+    overflow: visible ;
 }
 
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header {
-    width: 32px !important;
-    height: auto !important;
-    min-height: 60px !important;
-    padding: 8px 0 !important;
-    margin: 0 !important;
-    background-color: transparent !important; 
-    border: none !important;
-    border-right: 2px solid transparent !important; 
-    border-radius: 0 !important; 
-    opacity: 0.3 !important; 
-    transition: all 0.3s ease !important;
-    cursor: pointer !important;
-    box-shadow: none !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    flex: none !important; 
+    width: 32px ;
+    height: auto ;
+    min-height: 60px ;
+    padding: 8px 0 ;
+    margin: 0 ;
+    background-color: transparent ; 
+    border: none ;
+    border-right: 2px solid transparent ; 
+    border-radius: 0 ; 
+    opacity: 0.3 ; 
+    transition: all 0.3s ease ;
+    cursor: pointer ;
+    box-shadow: none ;
+    display: flex ;
+    justify-content: center ;
+    align-items: center ;
+    flex: none ; 
 }
 
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header-inner {
-    display: flex !important;
-    flex-direction: column !important;
-    width: 100% !important;
-    height: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    overflow: visible !important;
-    box-shadow: none !important;
-    border: none !important;
+    display: flex ;
+    flex-direction: column ;
+    width: 100% ;
+    height: 100% ;
+    padding: 0 ;
+    margin: 0 ;
+    overflow: visible ;
+    box-shadow: none ;
+    border: none ;
 }
 
 /* 核心修复：强行让文字竖起来并显示全 */
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header-inner-title {
-    writing-mode: vertical-rl !important;
-    text-orientation: upright !important;
-    white-space: normal !important;
-    word-break: keep-all !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
-    text-align: center !important;
-    font-size: 20px !important;
-    font-weight: 500 !important;
-    letter-spacing: 4px !important;
-    line-height: 1 !important;
-    display: block !important;
-    flex: none !important;
-    transform: none !important;
-    color: var(--text-normal) !important;
-    padding: 0px 10px 0px 0px !important;
-    user-select: none !important;
-    -webkit-user-select: none !important;
-    outline: none !important;
+    writing-mode: vertical-rl ;
+    text-orientation: upright ;
+    white-space: normal ;
+    word-break: keep-all ;
+    overflow: visible ;
+    text-overflow: clip ;
+    text-align: center ;
+    font-size: 20px ;
+    font-weight: 500 ;
+    letter-spacing: 4px ;
+    line-height: 1 ;
+    display: block ;
+    flex: none ;
+    transform: none ;
+    color: var(--text-normal) ;
+    padding: 0px 10px 0px 0px ;
+    user-select: none ;
+    -webkit-user-select: none ;
+    outline: none ;
 }
 
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header::before,
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header::after,
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header-inner::before,
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header-inner::after {
-    display: none !important;
-    content: none !important;
+    display: none ;
+    content: none ;
 }
 
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header-inner-icon,
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header-inner-close-button {
-    display: none !important;
+    display: none ;
 }
 
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header:hover,
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header.is-active {
-    opacity: 1 !important;
-    background-color: transparent !important;
-    border-right: 2px solid var(--interactive-accent) !important; 
+    opacity: 1 ;
+    background-color: transparent ;
+    border-right: 2px solid var(--interactive-accent) ; 
 }
 
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-tab-header.is-active .workspace-tab-header-inner-title {
-    color: var(--interactive-accent) !important; 
+    color: var(--interactive-accent) ; 
 }
 
 /* 防止遮挡正文 */
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full .workspace-split.mod-root .superzen-vtab-container .workspace-leaf .view-content {
-    padding-right: 0px !important;
+    padding-right: 0px ;
 }
 
 /* 左右标签分离模式 */
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full.superzen-split-tabs .workspace-split.mod-root .superzen-vtab-container.superzen-vtab-left > .workspace-tab-header-container {
-    right: auto !important;
-    left: -14px !important;
-    position: fixed !important;
+    right: auto ;
+    left: -14px ;
+    position: fixed ;
 }
 
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full.superzen-split-tabs .workspace-split.mod-root .superzen-vtab-container.superzen-vtab-left .workspace-tab-header {
-    border-right: none !important;
-    border-left: 2px solid transparent !important;
+    border-right: none ;
+    border-left: 2px solid transparent ;
 }
 
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full.superzen-split-tabs .workspace-split.mod-root .superzen-vtab-container.superzen-vtab-left .workspace-tab-header:hover,
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full.superzen-split-tabs .workspace-split.mod-root .superzen-vtab-container.superzen-vtab-left .workspace-tab-header.is-active {
-    border-right: none !important;
-    border-left: 2px solid var(--interactive-accent) !important; 
+    border-right: none ;
+    border-left: 2px solid var(--interactive-accent) ; 
 }
 
 body.superzen-vertical-tabs.superzen-dual-pane-mode.superzen-mode-center-full.superzen-split-tabs .workspace-split.mod-root .superzen-vtab-container.superzen-vtab-left .workspace-tab-header-inner-title {
-    padding: 0px 0px 0px 10px !important; 
+    padding: 0px 0px 0px 10px ; 
 }
