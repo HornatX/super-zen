@@ -1,85 +1,52 @@
 import { App, Notice, Plugin, PluginSettingTab, Setting, WorkspaceLeaf, View, Workspace } from 'obsidian';
 
-// --- 严格的类型接口定义，杜绝 any 滥用报错 ---
+// Obsidian desktop (Electron) 环境下 require 可用
+declare function require(moduleName: string): any;
+
 interface SuperZenSettings {
     keepDualPanes: boolean;
     verticalTabs: boolean;
     fixedRightTabs: boolean;
-    hideProperties: boolean; 
+    hideProperties: boolean;
     splitTabs: boolean;
 }
-
-interface ExtendedLeaf extends WorkspaceLeaf {
-    containerEl: HTMLElement;
-    getRoot(): unknown;
-}
-
-interface ExtendedWorkspace extends Workspace {
-    rootSplit: unknown;
-    leftSplit: unknown;
-    rightSplit: unknown;
-}
-
-interface ViewWithFile extends View {
-    file?: { extension: string };
-}
-
-// --- 常量定义 ---
-const BODY_ZEN_ACTIVE = "superzen-is-active";
-const LEAF_TARGET = "superzen-target-leaf";
-const BASE_TARGET = "superzen-is-base-target";
-const SETTING_DUAL_PANE_CLASS = "superzen-dual-pane-mode";
-const SETTING_VERTICAL_TABS_CLASS = "superzen-vertical-tabs";
-const VTAB_CONTAINER = "superzen-vtab-container"; 
-const SETTING_HIDE_PROPERTIES_CLASS = "superzen-hide-properties"; 
-const SETTING_SPLIT_TABS_CLASS = "superzen-split-tabs"; 
-
-const MODE_CENTER_FULL = "superzen-mode-center-full";
-const MODE_LEFT_AND_CENTER = "superzen-mode-left-center";
-const MODE_RIGHT_BASE_FULL = "superzen-mode-right-base-full";
-const MODE_RIGHT_AND_CENTER = "superzen-mode-right-center";
 
 const DEFAULT_SETTINGS: SuperZenSettings = {
     keepDualPanes: false,
     verticalTabs: false,
     fixedRightTabs: false,
     hideProperties: true,
-    splitTabs: false
+    splitTabs: false,
 };
 
 export default class SuperZenPlugin extends Plugin {
-    settings: SuperZenSettings;
-    isActive: boolean;
-    targetLeaf: WorkspaceLeaf | null;
-    currentModeClass: string | null;
+    settings!: SuperZenSettings;
+    isActive = false;
+    targetLeaf: WorkspaceLeaf | null = null;
+    currentModeClass: string | null = null;
+    private fullscreenTimer: ReturnType<typeof setInterval> | null = null;
+    private isHandlingFullscreen = false;
+    private escapeHandlersAttached = false;
 
     async onload() {
-        this.isActive = false;
-        this.targetLeaf = null;
-        this.currentModeClass = null;
-
         await this.loadSettings();
-
         this.addSettingTab(new SuperZenSettingTab(this.app, this));
 
-        // 修复：剥离了前缀，防止被 Obsidian 二次嵌套前缀报错
         this.addCommand({
-            id: "toggle",
-            name: "开启/关闭 定制禅模式",
-            callback: () => this.toggleZenMode()
+            id: 'toggle',
+            name: '开启/关闭 定制禅模式',
+            callback: () => this.toggleZenMode(),
         });
 
         this.addCommand({
-            id: "toggle-dual-pane",
-            name: "切换 单屏/双屏 对照模式",
-            callback: () => this.toggleDualPaneMode()
+            id: 'toggle-dual-pane',
+            name: '切换 单屏/双屏 对照模式',
+            callback: () => this.toggleDualPaneMode(),
         });
 
         this.registerEvent(
-            this.app.workspace.on("layout-change", () => {
-                if (this.isActive) {
-                    this.updateVTabContainer();
-                }
+            this.app.workspace.on('layout-change', () => {
+                if (this.isActive) this.updateVTabContainer();
             })
         );
     }
@@ -96,12 +63,128 @@ export default class SuperZenPlugin extends Plugin {
         await this.saveData(this.settings);
     }
 
+    // --- 辅助方法 ---
+
+    private getLeafContainer(leaf: WorkspaceLeaf): HTMLElement | null {
+        return (leaf as any)?.containerEl ?? null;
+    }
+
+    private getLeafRoot(leaf: WorkspaceLeaf): unknown {
+        return (leaf as any)?.getRoot?.() ?? null;
+    }
+
+    private isBaseView(leaf: WorkspaceLeaf): boolean {
+        const view = leaf.view;
+        if (!view) return false;
+        const file = (view as any)?.file;
+        if (file?.extension === 'base') return true;
+        return view.getViewType() === 'base';
+    }
+
+    private findActiveLeaf(): WorkspaceLeaf | null {
+        const domActive = activeDocument.querySelector('.workspace-leaf.mod-active');
+        if (!domActive) return null;
+        let found: WorkspaceLeaf | null = null;
+        this.app.workspace.iterateAllLeaves((leaf) => {
+            const el = this.getLeafContainer(leaf);
+            if (el === domActive || el?.contains(domActive)) {
+                found = leaf;
+            }
+        });
+        return found;
+    }
+
+    private applyLeafTarget(leaf: WorkspaceLeaf | null) {
+        const old = this.targetLeaf ? this.getLeafContainer(this.targetLeaf) : null;
+        if (old) old.classList.remove('superzen-target-leaf');
+
+        this.targetLeaf = leaf;
+        if (!leaf) return;
+
+        const el = this.getLeafContainer(leaf);
+        if (el) el.classList.add('superzen-target-leaf');
+    }
+
+    private setNativeFullscreen(fullscreen: boolean): boolean {
+        try {
+            const remote = require('@electron/remote');
+            const win = remote?.getCurrentWindow?.();
+            if (win?.setFullScreen) {
+                win.setFullScreen(fullscreen);
+                return true;
+            }
+        } catch { /* 非 Electron 环境或模块不可用 */ }
+        try {
+            const electron = require('electron');
+            const win = electron?.remote?.getCurrentWindow?.();
+            if (win?.setFullScreen) {
+                win.setFullScreen(fullscreen);
+                return true;
+            }
+        } catch { /* 同上 */ }
+        return false;
+    }
+
+    private requestFullscreenWithRetry(retries = 3, delay = 50): void {
+        if (!this.isActive || activeDocument.fullscreenElement) return;
+        activeDocument.body.requestFullscreen().catch(() => {
+            if (retries > 0 && this.isActive) {
+                setTimeout(() => this.requestFullscreenWithRetry(retries - 1, delay * 2), delay);
+            }
+        });
+    }
+
+    private enterFullscreen() {
+        if (!this.setNativeFullscreen(true) && !activeDocument.fullscreenElement) {
+            this.requestFullscreenWithRetry();
+        }
+    }
+
+    private exitFullscreen() {
+        if (!this.setNativeFullscreen(false) && activeDocument.fullscreenElement) {
+            activeDocument.exitFullscreen().catch(() => {});
+        }
+    }
+
+    private attachEscapeHandlers() {
+        if (this.escapeHandlersAttached) return;
+        activeDocument.addEventListener('keydown', this.handleEscape, true);
+        activeDocument.addEventListener('keyup', this.handleEscape, true);
+        activeDocument.addEventListener('fullscreenchange', this.handleFullscreenChange);
+        this.escapeHandlersAttached = true;
+    }
+
+    private detachEscapeHandlers() {
+        if (!this.escapeHandlersAttached) return;
+        activeDocument.removeEventListener('keydown', this.handleEscape, true);
+        activeDocument.removeEventListener('keyup', this.handleEscape, true);
+        activeDocument.removeEventListener('fullscreenchange', this.handleFullscreenChange);
+        this.escapeHandlersAttached = false;
+    }
+
+    private startFullscreenWatch() {
+        this.stopFullscreenWatch();
+        this.fullscreenTimer = setInterval(() => {
+            if (this.isActive && !activeDocument.fullscreenElement && !this.isHandlingFullscreen) {
+                this.isHandlingFullscreen = true;
+                this.enterFullscreen();
+                setTimeout(() => { this.isHandlingFullscreen = false; }, 200);
+            }
+        }, 500);
+    }
+
+    private stopFullscreenWatch() {
+        if (this.fullscreenTimer) {
+            clearInterval(this.fullscreenTimer);
+            this.fullscreenTimer = null;
+        }
+    }
+
+    // --- VTab 容器管理 ---
+
     updateVTabContainer() {
-        // 修复：兼容悬浮独立窗口的 activeDocument 抓取
-        activeDocument.querySelectorAll(`.${VTAB_CONTAINER}`).forEach(el => {
-            el.classList.remove(VTAB_CONTAINER);
-            el.classList.remove('superzen-vtab-left');
-            el.classList.remove('superzen-vtab-right');
+        activeDocument.querySelectorAll('.superzen-vtab-container').forEach((el) => {
+            el.classList.remove('superzen-vtab-container', 'superzen-vtab-left', 'superzen-vtab-right');
         });
 
         if (!this.isActive || !this.targetLeaf) return;
@@ -109,192 +192,102 @@ export default class SuperZenPlugin extends Plugin {
         const rootTabs = activeDocument.querySelectorAll('.workspace-split.mod-root .workspace-tabs');
         if (rootTabs.length === 0) return;
 
-        const isDualPaneActive = activeDocument.body.classList.contains(SETTING_DUAL_PANE_CLASS);
+        const isDual = activeDocument.body.classList.contains('superzen-dual-pane-mode');
 
-        if (this.settings.splitTabs && isDualPaneActive && rootTabs.length > 1) {
-            const firstTab = rootTabs[0];
-            firstTab.classList.add(VTAB_CONTAINER, 'superzen-vtab-left');
-            
-            const lastTab = rootTabs[rootTabs.length - 1];
-            lastTab.classList.add(VTAB_CONTAINER, 'superzen-vtab-right');
+        if (this.settings.splitTabs && isDual && rootTabs.length > 1) {
+            rootTabs[0].classList.add('superzen-vtab-container', 'superzen-vtab-left');
+            rootTabs[rootTabs.length - 1].classList.add('superzen-vtab-container', 'superzen-vtab-right');
+        } else if (this.settings.fixedRightTabs && isDual) {
+            rootTabs[rootTabs.length - 1]?.classList.add('superzen-vtab-container');
         } else {
-            if (this.settings.fixedRightTabs && isDualPaneActive) {
-                const lastTab = rootTabs[rootTabs.length - 1];
-                if (lastTab) {
-                    lastTab.classList.add(VTAB_CONTAINER);
-                }
-            } else {
-                const targetContainer = (this.targetLeaf as unknown as ExtendedLeaf).containerEl?.closest('.workspace-tabs');
-                if (targetContainer) {
-                    targetContainer.classList.add(VTAB_CONTAINER);
-                }
-            }
+            const container = this.getLeafContainer(this.targetLeaf)?.closest('.workspace-tabs');
+            if (container) container.classList.add('superzen-vtab-container');
         }
     }
 
+    // --- 禅模式切换 ---
+
     toggleZenMode() {
-        if (this.isActive) {
-            this.exitZenMode();
-        } else {
-            this.enterZenMode();
-        }
+        this.isActive ? this.exitZenMode() : this.enterZenMode();
     }
 
     async toggleDualPaneMode() {
         this.settings.keepDualPanes = !this.settings.keepDualPanes;
         await this.saveSettings();
+        const label = this.settings.keepDualPanes ? '开启' : '关闭';
 
-        const statusStr = this.settings.keepDualPanes ? "开启" : "关闭";
-
-        if (this.isActive) {
-            if (this.currentModeClass === MODE_CENTER_FULL) {
-                const body = activeDocument.body;
-                if (this.settings.keepDualPanes) {
-                    body.classList.add(SETTING_DUAL_PANE_CLASS);
-                    new Notice("SuperZen: 切换至【双屏对照】");
-                } else {
-                    // 修复：通过标准 DOM 巡检解决 activeLeaf 弃用问题，彻底兼容最新版本 API
-                    let activeLeaf: WorkspaceLeaf | null = null;
-                    const domActive = activeDocument.querySelector('.workspace-leaf.mod-active');
-                    if (domActive) {
-                        this.app.workspace.iterateAllLeaves((leaf) => {
-                            const leafContainer = (leaf as unknown as ExtendedLeaf).containerEl;
-                            if (leafContainer === domActive || leafContainer?.contains(domActive)) {
-                                activeLeaf = leaf;
-                            }
-                        });
-                    }
-
-                    if (activeLeaf && activeLeaf !== this.targetLeaf) {
-                        if (this.targetLeaf) {
-                            const oldContainer = (this.targetLeaf as unknown as ExtendedLeaf).containerEl;
-                            if (oldContainer) {
-                                oldContainer.classList.remove(LEAF_TARGET);
-                            }
-                        }
-
-                        this.targetLeaf = activeLeaf;
-
-                        const newContainer = (this.targetLeaf as unknown as ExtendedLeaf).containerEl;
-                        if (newContainer) {
-                            newContainer.classList.add(LEAF_TARGET);
-                        }
-
-                        let isBaseFile = false;
-                        const view = this.targetLeaf.view;
-                        if (view) {
-                            const file = (view as ViewWithFile).file;
-                            if (file && file.extension === 'base') {
-                                isBaseFile = true;
-                            } else if (view.getViewType() === 'base') {
-                                isBaseFile = true;
-                            }
-                        }
-
-                        if (isBaseFile) {
-                            body.classList.add(BASE_TARGET);
-                        } else {
-                            body.classList.remove(BASE_TARGET);
-                        }
-                    }
-
-                    body.classList.remove(SETTING_DUAL_PANE_CLASS);
-                    new Notice("SuperZen: 切换至【单屏独占】");
-                }
-                this.updateVTabContainer();
-            } else {
-                new Notice(`SuperZen: 默认双屏状态已${statusStr} (仅在正文全屏生效)`);
-            }
-        } else {
-            new Notice(`SuperZen: 默认双屏状态已更改为【${statusStr}】`);
+        if (!this.isActive || this.currentModeClass !== 'superzen-mode-center-full') {
+            new Notice(`SuperZen: 默认双屏状态已更改为【${label}】${this.isActive ? ' (仅在正文全屏生效)' : ''}`);
+            return;
         }
+
+        const body = activeDocument.body;
+        if (this.settings.keepDualPanes) {
+            body.classList.add('superzen-dual-pane-mode');
+            new Notice('SuperZen: 切换至【双屏对照】');
+        } else {
+            const activeLeaf = this.findActiveLeaf();
+            if (activeLeaf && activeLeaf !== this.targetLeaf) {
+                this.applyLeafTarget(activeLeaf);
+                if (this.isBaseView(activeLeaf)) {
+                    body.classList.add('superzen-is-base-target');
+                } else {
+                    body.classList.remove('superzen-is-base-target');
+                }
+            }
+            body.classList.remove('superzen-dual-pane-mode');
+            new Notice('SuperZen: 切换至【单屏独占】');
+        }
+        this.updateVTabContainer();
     }
 
     enterZenMode() {
-        let activeLeaf: WorkspaceLeaf | null = null;
-        const domActive = activeDocument.querySelector('.workspace-leaf.mod-active');
-        if (domActive) {
-            this.app.workspace.iterateAllLeaves((leaf) => {
-                const leafContainer = (leaf as unknown as ExtendedLeaf).containerEl;
-                if (leafContainer === domActive || leafContainer?.contains(domActive)) {
-                    activeLeaf = leaf;
-                }
-            });
-        }
-
+        const activeLeaf = this.findActiveLeaf();
         if (!activeLeaf) {
-            new Notice("SuperZen: 未找到可激活的窗口");
+            new Notice('SuperZen: 未找到可激活的窗口');
             return;
         }
 
         this.targetLeaf = activeLeaf;
         this.isActive = true;
 
-        const root = (this.targetLeaf as unknown as ExtendedLeaf).getRoot();
-        const extWorkspace = this.app.workspace as unknown as ExtendedWorkspace;
         const body = activeDocument.body;
+        const root = this.getLeafRoot(activeLeaf);
+        const ws = this.app.workspace as any;
 
-        body.classList.add(BODY_ZEN_ACTIVE);
-        
-        if (this.settings.hideProperties) {
-            body.classList.add(SETTING_HIDE_PROPERTIES_CLASS);
+        // CSS 类名映射
+        const classes: string[] = ['superzen-is-active'];
+
+        if (this.settings.hideProperties) classes.push('superzen-hide-properties');
+        if (this.settings.verticalTabs) classes.push('superzen-vertical-tabs');
+        if (this.settings.splitTabs) classes.push('superzen-split-tabs');
+
+        const leafEl = this.getLeafContainer(activeLeaf);
+        if (leafEl) leafEl.classList.add('superzen-target-leaf');
+
+        if (this.isBaseView(activeLeaf)) classes.push('superzen-is-base-target');
+
+        if (this.settings.keepDualPanes && root === ws.rootSplit) {
+            classes.push('superzen-dual-pane-mode');
         }
 
-        const containerEl = (this.targetLeaf as unknown as ExtendedLeaf).containerEl;
-        if (containerEl) containerEl.classList.add(LEAF_TARGET);
-
-        if (this.settings.verticalTabs) {
-            body.classList.add(SETTING_VERTICAL_TABS_CLASS);
+        // 确定模式
+        if (root === ws.rootSplit) {
+            this.currentModeClass = 'superzen-mode-center-full';
+        } else if (root === ws.leftSplit) {
+            this.currentModeClass = 'superzen-mode-left-center';
+        } else if (root === ws.rightSplit) {
+            this.currentModeClass = this.isBaseView(activeLeaf)
+                ? 'superzen-mode-right-base-full'
+                : 'superzen-mode-right-center';
         }
 
-        if (this.settings.splitTabs) {
-            body.classList.add(SETTING_SPLIT_TABS_CLASS);
-        }
+        if (this.currentModeClass) classes.push(this.currentModeClass);
+        body.classList.add(...classes);
 
-        if (this.settings.keepDualPanes) {
-            if (root === extWorkspace.rootSplit) {
-                body.classList.add(SETTING_DUAL_PANE_CLASS);
-            }
-        }
-
-        let isBaseFile = false;
-        const view = this.targetLeaf.view;
-        if (view) {
-            const file = (view as ViewWithFile).file;
-            if (file && file.extension === 'base') {
-                isBaseFile = true;
-            } else if (view.getViewType() === 'base') {
-                isBaseFile = true;
-            }
-        }
-
-        if (isBaseFile) {
-            body.classList.add(BASE_TARGET);
-        }
-
-        if (root === extWorkspace.rootSplit) {
-            this.currentModeClass = MODE_CENTER_FULL;
-            body.classList.add(MODE_CENTER_FULL);
-        } else if (root === extWorkspace.leftSplit) {
-            this.currentModeClass = MODE_LEFT_AND_CENTER;
-            body.classList.add(MODE_LEFT_AND_CENTER);
-        } else if (root === extWorkspace.rightSplit) {
-            if (isBaseFile) {
-                this.currentModeClass = MODE_RIGHT_BASE_FULL;
-                body.classList.add(MODE_RIGHT_BASE_FULL);
-            } else {
-                this.currentModeClass = MODE_RIGHT_AND_CENTER;
-                body.classList.add(MODE_RIGHT_AND_CENTER);
-            }
-        }
-
-        if (!activeDocument.fullscreenElement) {
-            activeDocument.body.requestFullscreen().catch((err: unknown) => {
-                console.warn("SuperZen: 请求全屏失败, 但继续执行专注模式", err);
-            });
-        }
-
-        activeDocument.addEventListener('fullscreenchange', this.handleFullscreenChange);
+        this.enterFullscreen();
+        this.attachEscapeHandlers();
+        this.startFullscreenWatch();
         this.updateVTabContainer();
     }
 
@@ -302,52 +295,49 @@ export default class SuperZenPlugin extends Plugin {
         if (!this.isActive) return;
 
         const body = activeDocument.body;
-        body.classList.remove(BODY_ZEN_ACTIVE);
-        body.classList.remove(BASE_TARGET);
-        body.classList.remove(SETTING_DUAL_PANE_CLASS);
-        body.classList.remove(SETTING_VERTICAL_TABS_CLASS);
-        body.classList.remove(SETTING_HIDE_PROPERTIES_CLASS); 
-        body.classList.remove(SETTING_SPLIT_TABS_CLASS); 
+        body.classList.remove(
+            'superzen-is-active', 'superzen-is-base-target', 'superzen-dual-pane-mode',
+            'superzen-vertical-tabs', 'superzen-hide-properties', 'superzen-split-tabs',
+        );
+        if (this.currentModeClass) body.classList.remove(this.currentModeClass);
 
-        if (this.currentModeClass) {
-            body.classList.remove(this.currentModeClass);
-        }
+        const leafEl = this.targetLeaf ? this.getLeafContainer(this.targetLeaf) : null;
+        if (leafEl) leafEl.classList.remove('superzen-target-leaf');
 
-        if (this.targetLeaf) {
-            const containerEl = (this.targetLeaf as unknown as ExtendedLeaf).containerEl;
-            if (containerEl) {
-                containerEl.classList.remove(LEAF_TARGET);
-            }
-        }
-
-        activeDocument.querySelectorAll(`.${VTAB_CONTAINER}`).forEach(el => {
-            el.classList.remove(VTAB_CONTAINER);
-            el.classList.remove('superzen-vtab-left');
-            el.classList.remove('superzen-vtab-right');
+        activeDocument.querySelectorAll('.superzen-vtab-container').forEach((el) => {
+            el.classList.remove('superzen-vtab-container', 'superzen-vtab-left', 'superzen-vtab-right');
         });
 
-        if (activeDocument.fullscreenElement) {
-            activeDocument.exitFullscreen().catch(() => { });
-        }
-
-        activeDocument.removeEventListener('fullscreenchange', this.handleFullscreenChange);
+        this.stopFullscreenWatch();
+        this.exitFullscreen();
+        this.detachEscapeHandlers();
 
         this.isActive = false;
         this.targetLeaf = null;
         this.currentModeClass = null;
     }
 
-    // 修复：采用箭头函数防丢失 this 上下文，处理 unbound method 报错
+    // --- 事件处理器 ---
+
     private handleFullscreenChange = () => {
-        if (!activeDocument.fullscreenElement && this.isActive) {
-            this.exitZenMode();
+        if (this.isHandlingFullscreen || !this.isActive || activeDocument.fullscreenElement) return;
+        this.isHandlingFullscreen = true;
+        this.enterFullscreen();
+        setTimeout(() => { this.isHandlingFullscreen = false; }, 200);
+    };
+
+    private handleEscape = (e: KeyboardEvent) => {
+        if (this.isActive && e.key === 'Escape') {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
         }
     };
 }
 
 // 设置面板
 class SuperZenSettingTab extends PluginSettingTab {
-    plugin: SuperZenPlugin;
+    private plugin: SuperZenPlugin;
 
     constructor(app: App, plugin: SuperZenPlugin) {
         super(app, plugin);
@@ -357,83 +347,63 @@ class SuperZenSettingTab extends PluginSettingTab {
     display(): void {
         const { containerEl } = this;
         containerEl.empty();
-        
-        // 修复：采用标准官方组件设置标题，而非 createEl
-        new Setting(containerEl)
-            .setName('SuperZen 定制禅模式设置')
-            .setHeading();
+
+        new Setting(containerEl).setName('SuperZen 定制禅模式设置').setHeading();
 
         new Setting(containerEl)
             .setName('双屏模式')
             .setDesc('开启后，进入禅模式时将保留多窗格同屏对照。')
-            .addToggle(toggle => toggle
+            .addToggle((t) => t
                 .setValue(this.plugin.settings.keepDualPanes)
-                .onChange(async (value) => {
-                    this.plugin.settings.keepDualPanes = value;
-                    await this.plugin.saveSettings();
-                }));
+                .onChange(async (v) => { this.plugin.settings.keepDualPanes = v; await this.plugin.saveSettings(); }));
 
         new Setting(containerEl)
             .setName('隐藏笔记属性区域 (Properties)')
-            .setDesc('开启后，进入禅模式将自动隐藏文档顶部的属性信息面板（YAML区域），让写作更沉浸。')
-            .addToggle(toggle => toggle
+            .setDesc('开启后，进入禅模式将自动隐藏文档顶部的属性信息面板，让写作更沉浸。')
+            .addToggle((t) => t
                 .setValue(this.plugin.settings.hideProperties)
-                .onChange(async (value) => {
-                    this.plugin.settings.hideProperties = value;
+                .onChange(async (v) => {
+                    this.plugin.settings.hideProperties = v;
                     await this.plugin.saveSettings();
                     if (this.plugin.isActive) {
-                        if (value) {
-                            activeDocument.body.classList.add(SETTING_HIDE_PROPERTIES_CLASS);
-                        } else {
-                            activeDocument.body.classList.remove(SETTING_HIDE_PROPERTIES_CLASS);
-                        }
+                        activeDocument.body.classList.toggle('superzen-hide-properties', v);
                     }
                 }));
 
         new Setting(containerEl)
             .setName('极简悬浮选项卡 (边缘悬浮文字)')
-            .setDesc('彻底去框化：选项卡变为纯粹文字悬浮，解决横向挤压变形问题。未激活呈半透明幽灵态，激活时字体点亮并带边缘线。')
-            .addToggle(toggle => toggle
+            .setDesc('彻底去框化：选项卡变为纯粹文字悬浮，解决横向挤压变形问题。')
+            .addToggle((t) => t
                 .setValue(this.plugin.settings.verticalTabs)
-                .onChange(async (value) => {
-                    this.plugin.settings.verticalTabs = value;
+                .onChange(async (v) => {
+                    this.plugin.settings.verticalTabs = v;
                     await this.plugin.saveSettings();
                     if (this.plugin.isActive) {
-                        if (value) {
-                            activeDocument.body.classList.add(SETTING_VERTICAL_TABS_CLASS);
-                        } else {
-                            activeDocument.body.classList.remove(SETTING_VERTICAL_TABS_CLASS);
-                        }
+                        activeDocument.body.classList.toggle('superzen-vertical-tabs', v);
                     }
                 }));
 
         new Setting(containerEl)
             .setName('固定右分屏标签 (双屏模式专用)')
-            .setDesc('默认关闭(跟随焦点窗口)。开启后：在双屏模式下无论焦点在哪，极简悬浮选项卡始终固定在右侧的分屏上。')
-            .addToggle(toggle => toggle
+            .setDesc('默认关闭(跟随焦点窗口)。开启后：在双屏模式下极简悬浮选项卡始终固定在右侧分屏上。')
+            .addToggle((t) => t
                 .setValue(this.plugin.settings.fixedRightTabs)
-                .onChange(async (value) => {
-                    this.plugin.settings.fixedRightTabs = value;
+                .onChange(async (v) => {
+                    this.plugin.settings.fixedRightTabs = v;
                     await this.plugin.saveSettings();
-                    if (this.plugin.isActive) {
-                        this.plugin.updateVTabContainer();
-                    }
+                    if (this.plugin.isActive) this.plugin.updateVTabContainer();
                 }));
 
         new Setting(containerEl)
             .setName('左右标签 (双屏模式专用)')
-            .setDesc('关闭时，保持当前行为(仅单侧显示，跟随焦点或固定右侧)。开启后：双屏对照时，左侧屏幕的选项卡固定在左侧边缘，右侧屏幕的选项卡固定在右侧边缘。')
-            .addToggle(toggle => toggle
+            .setDesc('开启后：双屏对照时，左侧选项卡固定在左边缘，右侧选项卡固定在右边缘。')
+            .addToggle((t) => t
                 .setValue(this.plugin.settings.splitTabs)
-                .onChange(async (value) => {
-                    this.plugin.settings.splitTabs = value;
+                .onChange(async (v) => {
+                    this.plugin.settings.splitTabs = v;
                     await this.plugin.saveSettings();
                     if (this.plugin.isActive) {
-                        if (value) {
-                            activeDocument.body.classList.add(SETTING_SPLIT_TABS_CLASS);
-                        } else {
-                            activeDocument.body.classList.remove(SETTING_SPLIT_TABS_CLASS);
-                        }
+                        activeDocument.body.classList.toggle('superzen-split-tabs', v);
                         this.plugin.updateVTabContainer();
                     }
                 }));
