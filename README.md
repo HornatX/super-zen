@@ -5,8 +5,13 @@
 我在小红书发布了许多obsidian的教程和插件开发进度，你的关注就是对我最大的支持
 
 一键进入沉浸式写作环境，让专注回归本质。
+
 <p align="center">
-  <img src="assets/禅模式1.gif" alt="禅模式演示" />
+  <img src="assets/禅模式1.gif" alt="禅模式演示1" />
+</p>
+
+<p align="center">
+  <img src="assets/禅模式2.gif" alt="禅模式演示2" />
 </p>
 
 [简体中文](#简体中文) | [用法](#用法) | [English](#english) | [Usage](#usage)
